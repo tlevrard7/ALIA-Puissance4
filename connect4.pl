@@ -13,7 +13,9 @@ run :- %%% Display end of game message
 hello :-
     initialize,
     write('Welcome to connect-4.'),
-    read_players,
+    read_players(T1,T2),
+    asserta( player(1, T1) ),
+    asserta( player(2, T2) ), !,
     output_players
     .
 
@@ -53,54 +55,21 @@ read_play_again(V) :-
     .
 
 
-read_players :-
+read_players(T1,T2) :-
     write('Number of human players? '),
     read(N),
-    set_players(N)
+    (N == 0 -> T1 = computer, T2 = computer;
+     N == 1 -> human_playing(T1,T2);
+     N == 2 -> T1 = human, T2 = human;
+     write('Please enter 0, 1, or 2.'), nl, read_players(T1,T2))
     .
 
-set_players(0) :- 
-    asserta( player(1, computer) ),
-    asserta( player(2, computer) ), !
-    .
-
-set_players(1) :-
-    nl,
+human_playing(T1,T2) :- 
     write('Is human playing X or O (X moves first)? '),
     read(M),
-    human_playing(M), !
-    .
-
-set_players(2) :- 
-    asserta( player(1, human) ),
-    asserta( player(2, human) ), !
-    .
-
-set_players(_) :-
-    nl,
-    write('Please enter 0, 1, or 2.'),
-    read_players
-    .
-
-
-human_playing(M) :- 
-    (M == 'x' ; M == 'X'),
-    asserta( player(1, human) ),
-    asserta( player(2, computer) ), !
-    .
-
-human_playing(M) :- 
-    (M == 'o' ; M == 'O'),
-    asserta( player(1, computer) ),
-    asserta( player(2, human) ), !
-    .
-
-human_playing(_) :-
-    nl,
-    write('Please enter X or O.'),
-    set_players(1)
-    .
-
+    (M == 'x' -> T1 = human, T2 = computer;
+     M == 'o' -> T1 = computer, T2 = human;
+     write('Please enter x or o.'), nl, human_playing(T1,T2)).
 
 play(P) :-
     board(B), !,
@@ -121,7 +90,7 @@ game_over2(P, B) :-
     output_winner(P)
     .
 
-game_over2(P, B) :- %%% game is over board empty
+game_over2(_, B) :- %%% game is over board empty
     blank_mark(E),
     extract_row(B, 6, R),
     not(member(E,R)), %%% game no empty cell

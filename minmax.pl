@@ -1,5 +1,5 @@
 %.......................................
-% square
+% square !!!!!!!!!!!!!!!!!!
 %.......................................
 % The mark in a square(N) corresponds to an item in a list, as follows:
 
@@ -14,7 +14,7 @@ square([_,_,_,_,_,_,_,M,_],8,M).
 square([_,_,_,_,_,_,_,_,M],9,M).
 
 %.......................................
-% moves
+% moves !!!!!!!!!!!!!!!!!!!!!!!
 %.......................................
 % retrieves a list of available moves (empty squares) on a board.
 %
@@ -48,7 +48,16 @@ utility(B,U) :-
 utility(B,U) :-
     U = 0
     .
+% Estimation
+replace_blank([],[],_).
+replace_blank(["."|R],[M|T],M):- replace_blank(R,T,M).
+replace_blank([L|R],[L|T],M):- L \= ".", replace_blank(R,T,M).
 
+replace_blank_list([],[],_).
+replace_blank_list([L1|R],[L2|T],M):- replace_blank(L1,L2,M), replace_blank_list(R,T,M),!.
+
+possible_combination(B, M, Count):- replace_blank_list(B,L,M), findall(1, win(L,M), W), length(W, Count).
+% to continue !!!!!!!!!!!!!!!!!
 
 %.......................................
 % minimax
@@ -114,7 +123,7 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
 % if there is only one move left in the list...
 
 best(D,B,M,[COL1],COL,U, ALPHA, BETA) :-
-    move(B,COL1,M,B2),        %%% apply that move to the board,
+    move(B,COL1,M,B2),        %%% apply that move to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
     !,  
     minimax(D,B2,M2,_COL,U, ALPHA, BETA),  %%% then recursively search for the utility value of that move.
@@ -124,7 +133,7 @@ best(D,B,M,[COL1],COL,U, ALPHA, BETA) :-
 % if there is more than one move in the list...
 
 best(D,B,M,[COL1|T],COL,U, ALPHA, BETA) :-
-    move(B,COL1,M,B2),             %%% apply the first move (in the list) to the board,
+    move(B,COL1,M,B2),             %%% apply the first move (in the list) to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
     !,
     minimax(D,B2,M2,_COL,U1, ALPHA, BETA),                         %%% recursively search for the utility value of that move,

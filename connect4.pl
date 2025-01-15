@@ -4,10 +4,8 @@
 
 run :-
     hello,          %%% Display welcome message, initialize game
-    play(1).        %%% Play the game starting with player 1
-
-run :- %%% Display end of game message
-    goodbye.
+    play(1);        %%% Play the game starting with player 1
+    goodbye. %%% Display end of game message
 
 
 hello :-
@@ -65,7 +63,7 @@ read_players(T1,T2) :-
     .
 
 human_playing(T1,T2) :- 
-    write('Is human playing X or O (X moves first)? '),
+    write('Is human playing x or o (x moves first)? '),
     read(M),
     (M == 'x' -> T1 = human, T2 = computer;
      M == 'o' -> T1 = computer, T2 = human;
@@ -81,22 +79,8 @@ play(P) :-
     .
 
 game_over(P, B) :-
-    game_over2(P, B)
-    .
-
-game_over2(P, B) :-
-    opponent_mark(P, M),   %%% game is over if player wins
-    win(B, M),
-    output_winner(P)
-    .
-
-game_over2(_, B) :- %%% game is over board empty
-    blank_mark(E),
-    extract_row(B, 6, R),
-    not(member(E,R)), %%% game no empty cell
-    output_winner(0)
-    .
-
+    opponent_mark(P, M), win(B, M) -> output_winner(next_player(P));
+    blank_mark(E), extract_row(B, 6, R), not(member(E,R)) -> output_winner(0).
 
 % Vérifier si un joueur a gagné
 win(B, M) :-

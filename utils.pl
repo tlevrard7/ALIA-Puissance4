@@ -1,5 +1,5 @@
 :- module(utils, [
-    next_player/2,inverse_mark/2, player_mark/2, blank_mark/1, maximizing/1,
+    next_player/2, player_mark/2, blank_mark/1, maximizing/1,
     transpose/2, rows/2, columns/2, diagonals/2, extract_row/3,
     moves/2, win/2, move/4
 ]).
@@ -8,8 +8,6 @@
 next_player(1, 2).      %%% determines the next player after the given player
 next_player(2, 1).
 
-inverse_mark('x', 'o'). %%% determines the opposite of the given mark
-inverse_mark('o', 'x').
 
 player_mark(1, 'x').    %%% the mark for the given player
 player_mark(2, 'o').    

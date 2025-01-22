@@ -5,14 +5,9 @@
 
 controllers([human,random, minimax]).
 
-run :-
-    hello,          %%% Display welcome message, initialize game
-    play(1);        %%% Play the game starting with player 1
-    goodbye. %%% Display end of game message
+run :- initialize, play(1); exit.
 
-
-hello :-
-    initialize,
+initialize :-
     write('Welcome to connect-4.'), nl,
     player_mark(1,M1),
     read_player(M1 , T1),
@@ -20,10 +15,7 @@ hello :-
     read_player(M2 , T2),
     asserta( player(1, T1) ),
     asserta( player(2, T2) ), !,
-    output_players
-    .
-
-initialize :-
+    output_players,
     blank_mark(E),
     asserta( board([
         [E, E, E, E, E, E],
@@ -36,7 +28,7 @@ initialize :-
     ]) )  %%% create a blank board
     .
 
-goodbye :-
+exit :-
     write('Game over: '),
     nl,
     retract(board(_)),
@@ -48,30 +40,20 @@ goodbye :-
     .
 
 read_play_again(V) :-
-    write('Play again (Y/N)? '),
+    write('Play again [y,n]? '),
     read(V),
-    (V == 'y' ; V == 'Y' ; V == 'n' ; V == 'N'), !
-    .
-
+    (V == 'y' ; V == 'n'), !.
 read_play_again(V) :-
-    write('Please enter Y or N.'),
-    read_play_again(V)
-    .
-
+    write('Please enter y or n.'),
+    read_play_again(V).
 
 read_player(M,T) :-
     controllers(C),
-    write('Player \''), write(M), write('\' type '), write(C), write('?'),
-    read(T),
-    (member(T, C);
-     write('Please enter a value in '), write(C), nl, read_player(M, T)).
-
-human_playing(T1,T2) :- 
-    write('Is human playing x or o (x moves first)? '),
-    read(M),
-    (M == 'x' -> T1 = human, T2 = rng;
-     M == 'o' -> T1 = minimax, T2 = human;
-     write('Please enter x or o.'), nl, human_playing(T1,T2)).
+    write(M), write(' controller '), write(C), write('?'),
+    read(T), member(T, C).
+read_player(M,T) :-
+    controllers(C),
+    write('Please enter a value in '), write(C), nl, read_player(M, T).
 
 play(P) :-
     board(B), !,
@@ -87,12 +69,20 @@ game_over(P, B) :-
     (player_mark(P, M), win(B, M)) -> output_winner(P);
     (blank_mark(E), extract_row(B, 6, R), not(member(E,R))) -> output_winner(0).
 
+human_move(B, M, I) :-
+    moves(B, C),
+    write('Player '), write(M), write(' move? '),
+    read(I), member(I, C).
+human_move(B, M, I) :-
+    moves(B, C),
+    write('Valid moves are '), write(C), write('. '), human_move(B, M, I).
+
 make_move(P, B) :-
     player(P, Type),
     player_mark(P, M),
     write('Player'), write(M), write(' ('), write(Type), write(') is thinking about next move...'), nl,
     (
-        Type == human -> write('Player '), write(P), write(' move? '), read(I);
+        Type == human -> human_move(B, M, I);
         Type == random -> random_ai_move(B, M, I);
         Type == minmax -> minmax_AI_move(B, M, I)
     ),

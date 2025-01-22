@@ -1,5 +1,5 @@
 :- module(minmax, [minimax/7]).
-:- use_module(utils,[win/2, moves/2]).
+:- use_module(utils,[win/2, moves/2, move/4]).
 
 
 %.......................................

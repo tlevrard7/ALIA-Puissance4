@@ -1,6 +1,6 @@
 :- use_module(utils).
 :- use_module(output).
-:- use_module(random_ai).
+:- use_module(ai).
 :- use_module(minmax).
 
 
@@ -58,7 +58,7 @@ read_play_again(V) :-
 read_players(T1,T2) :-
     write('Number of human players? '),
     read(N),
-    (N == 0 -> T1 = rng, T2 = rng;
+    (N == 0 -> T1 = minimax, T2 = rng;
      N == 1 -> human_playing(T1,T2);
      N == 2 -> T1 = human, T2 = human;
      write('Please enter 0, 1, or 2.'), nl, read_players(T1,T2))
@@ -68,7 +68,7 @@ human_playing(T1,T2) :-
     write('Is human playing x or o (x moves first)? '),
     read(M),
     (M == 'x' -> T1 = human, T2 = rng;
-     M == 'o' -> T1 = rng, T2 = human;
+     M == 'o' -> T1 = minimax, T2 = human;
      write('Please enter x or o.'), nl, human_playing(T1,T2)).
 
 play(P) :-
@@ -122,8 +122,9 @@ make_move2(rng, P, B, B2) :-
 make_move2(minmax, P, B, B2) :-
     write('Computer is thinking about next move...'),
     player_mark(P, M),
-    minimax(0, B, M, S, U),
-    move(B,I,M,B2),
+    % minimax(0, B, M, S, U),
+    minmax_AI_move(B, M, COL),
+    move(B, COL, M, B2),
     nl,
     nl,
     write('Computer places '),
@@ -133,28 +134,4 @@ make_move2(minmax, P, B, B2) :-
     write('.'), nl
     .
 
-% Appliquer un mouvement sur le plateau
-move(Board, ColumnIndex, PlayerMark, NewBoard) :-
-    nth1(ColumnIndex, Board, Column),                     % Obtenir la colonne spécifiée
-    add_token(Column, PlayerMark, NewColumn),             % Ajouter le jeton dans cette colonne
-    replace_column(Board, ColumnIndex, NewColumn, NewBoard). % Mettre à jour le plateau
 
-% Ajouter un jeton dans une colonne spécifique
-add_token(Column, PlayerMark, NewColumn) :-
-    replace_first_empty(Column, PlayerMark, NewColumn).
-
-% Remplacer la première case vide par le jeton du joueur
-replace_first_empty([H|Tail], PlayerMark, [PlayerMark|Tail]) :-
-    blank_mark(E),
-    H == E, !
-    .
-replace_first_empty([Head|Tail], PlayerMark, [Head|NewTail]) :-
-    replace_first_empty(Tail, PlayerMark, NewTail).
-
-
-% Remplacer une colonne spécifique dans le plateau
-replace_column([_|Tail], 1, NewColumn, [NewColumn|Tail]) :- !. % Remplace la première colonne
-replace_column([Head|Tail], Index, NewColumn, [Head|NewTail]) :-
-    Index > 1,
-    NewIndex is Index - 1,
-    replace_column(Tail, NewIndex, NewColumn, NewTail).

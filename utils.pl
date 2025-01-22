@@ -1,7 +1,7 @@
 :- module(utils, [
     next_player/2,inverse_mark/2, player_mark/2, opponent_mark/2, blank_mark/1, maximizing/1,
     transpose/2, rows/2, columns/2, diagonals/2, extract_row/3,
-    moves/2, win/2
+    moves/2, win/2, move/4, add_token/3, replace_column/4
 ]).
 
 
@@ -83,6 +83,32 @@ moves(B,L) :-
     blank_mark(E),
     extract_row(B, 6, R),
     findall(N, nth1(N,R,E), L).
+    
+% Appliquer un mouvement sur le plateau
+move(Board, ColumnIndex, PlayerMark, NewBoard) :-
+    nth1(ColumnIndex, Board, Column),                     % Obtenir la colonne spécifiée
+    add_token(Column, PlayerMark, NewColumn),             % Ajouter le jeton dans cette colonne
+    replace_column(Board, ColumnIndex, NewColumn, NewBoard). % Mettre à jour le plateau
+
+% Ajouter un jeton dans une colonne spécifique
+add_token(Column, PlayerMark, NewColumn) :-
+    replace_first_empty(Column, PlayerMark, NewColumn).
+
+% Remplacer la première case vide par le jeton du joueur
+replace_first_empty([H|Tail], PlayerMark, [PlayerMark|Tail]) :-
+    blank_mark(E),
+    H == E, !
+    .
+replace_first_empty([Head|Tail], PlayerMark, [Head|NewTail]) :-
+    replace_first_empty(Tail, PlayerMark, NewTail).
+
+
+% Remplacer une colonne spécifique dans le plateau
+replace_column([_|Tail], 1, NewColumn, [NewColumn|Tail]) :- !. % Remplace la première colonne
+replace_column([Head|Tail], Index, NewColumn, [Head|NewTail]) :-
+    Index > 1,
+    NewIndex is Index - 1,
+    replace_column(Tail, NewIndex, NewColumn, NewTail).
 
 % Vérifier si un joueur a gagné
 win(B, M) :-

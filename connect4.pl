@@ -58,12 +58,10 @@ read_player(M,T) :-
 play(P) :-
     board(B), !,
     output_board(B), !,
-    make_move(P, B), !,
-    board(B2), !,
-    not(game_over(P, B2)), !,
     next_player(P, P2), !,
-    play(P2), !
-    .
+    not(game_over(P2, B)), !,
+    make_move(P, B), !,
+    play(P2), !.
 
 game_over(P, B) :-
     (player_mark(P, M), win(B, M)) -> output_winner(P);
@@ -88,6 +86,6 @@ make_move(P, B) :-
     ),
     move(B,I,M,B2),
 
-    write('Player'), write(P), write(' ('), write(Type), write(') plays in column '), write(I), write('.'), nl,
+    write('Player'), write(M), write(' ('), write(Type), write(') plays in column '), write(I), write('.'), nl,
     retract( board(_) ),
     asserta( board(B2) ).

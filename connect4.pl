@@ -1,6 +1,7 @@
 :- use_module(utils).
 :- use_module(output).
 :- use_module(random_ai).
+:- use_module(minmax).
 
 
 run :-

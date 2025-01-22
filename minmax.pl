@@ -1,31 +1,6 @@
-%.......................................
-% square !!!!!!!!!!!!!!!!!!
-%.......................................
-% The mark in a square(N) corresponds to an item in a list, as follows:
+:- module(minmax, [minimax/7]).
+:- use_module(utils,[win/2, moves/2]).
 
-square([M,_,_,_,_,_,_,_,_],1,M).
-square([_,M,_,_,_,_,_,_,_],2,M).
-square([_,_,M,_,_,_,_,_,_],3,M).
-square([_,_,_,M,_,_,_,_,_],4,M).
-square([_,_,_,_,M,_,_,_,_],5,M).
-square([_,_,_,_,_,M,_,_,_],6,M).
-square([_,_,_,_,_,_,M,_,_],7,M).
-square([_,_,_,_,_,_,_,M,_],8,M).
-square([_,_,_,_,_,_,_,_,M],9,M).
-
-%.......................................
-% moves !!!!!!!!!!!!!!!!!!!!!!!
-%.......................................
-% retrieves a list of available moves (empty squares) on a board.
-%
-
-moves(B,L) :-
-    not(win(B,x)),                %%% if either player already won, then there are no available moves
-    not(win(B,o)),
-    blank_mark(E),
-    findall(N, square(B,N,E), L), 
-    L \= []
-    .
 
 %.......................................
 % utility
@@ -48,7 +23,13 @@ utility(B,U) :-
 utility(B,U) :-
     U = 0
     .
+
+%.......................................
 % Estimation
+%.......................................
+% In case we arrive at max depth.
+% We calculate the difference of possible winning moves for each player.
+
 replace_blank([],[],_).
 replace_blank(["."|R],[M|T],M):- replace_blank(R,T,M).
 replace_blank([L|R],[L|T],M):- L \= ".", replace_blank(R,T,M).
@@ -58,7 +39,7 @@ replace_blank_list([L1|R],[L2|T],M):- replace_blank(L1,L2,M), replace_blank_list
 
 possible_combination(B, M, COUNT):- replace_blank_list(B,L,M), findall(1, win(L,M), W), length(W, COUNT).
 
-% toujours x - o
+% Heuristic, toujours x - o
 % utilityestimate(B,U,M):- inverse_mark(M, M2), possible_combination(B, M, COUNT1), possible_combination(B, M2, COUNT2), U is COUNT1 - COUNT2.
 utilityestimate(B,U):- possible_combination(B, 'x', COUNTAI), possible_combination(B, 'o', COUNTP1), U is COUNTAI - COUNTP1.
 
@@ -79,7 +60,7 @@ minimax(D,B,M,COL,U, ALPHA, BETA) :-
 
 % For the opening move we choose the know best starting move column 4.
 % Saves the user the trouble of waiting  for the computer to search the entire minimax tree.
-minimax(_,[E,E,E, E,E,E, E,E,E],M,COL,U, _, _) :-   
+minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E]],M,COL,U, _, _) :-   
     blank_mark(E),
     COL = 4,
     !.

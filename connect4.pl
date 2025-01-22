@@ -3,7 +3,7 @@
 :- use_module(ai).
 :- use_module(minmax).
 
-controllers([human,random, minimax]).
+controllers([human,random, minmax]).
 
 run :- initialize, play(1); exit.
 

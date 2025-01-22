@@ -1,5 +1,5 @@
 :- module(utils, [
-    next_player/2, player_mark/2, blank_mark/1, maximizing/1,
+    next_player/2, player_mark/2, inverse_mark/2, blank_mark/1, maximizing/1, minimizing/1,
     transpose/2, rows/2, columns/2, diagonals/2, extract_row/3,
     moves/2, win/2, move/4
 ]).
@@ -8,6 +8,8 @@
 next_player(1, 2).      %%% determines the next player after the given player
 next_player(2, 1).
 
+inverse_mark('x', 'o'). %%% determines the opposite of the given mark
+inverse_mark('o', 'x').
 
 player_mark(1, 'x').    %%% the mark for the given player
 player_mark(2, 'o').    
@@ -74,10 +76,18 @@ diagonal(Board, Diagonal) :-
     length(Diagonal, L),
     L >= 4.
 
-moves(B,L) :-
-    blank_mark(E),
-    extract_row(B, 6, R),
-    findall(N, nth1(N,R,E), L).
+moves(Board, ValidMoves) :-
+    blank_mark(E), % Le symbole d'une case vide
+    findall(Col, (
+        nth1(Col, Board, Column), % Obtenir chaque colonne
+        column_has_blank(Column, E) % Vérifier si la colonne a au moins une case vide
+    ), ValidMoves).
+
+% Vérifie si une colonne a au moins une case vide
+column_has_blank([E|_], E) :- !. % Si la première case est vide, on s'arrête
+column_has_blank([_|Rest], E) :- column_has_blank(Rest, E). % Sinon, on continue
+
+
     
 % Appliquer un mouvement sur le plateau
 move(Board, ColumnIndex, PlayerMark, NewBoard) :-

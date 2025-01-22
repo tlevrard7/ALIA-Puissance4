@@ -1,5 +1,6 @@
 :- use_module(utils).
 :- use_module(output).
+:- use_module(random_ai).
 
 
 run :-
@@ -56,7 +57,7 @@ read_play_again(V) :-
 read_players(T1,T2) :-
     write('Number of human players? '),
     read(N),
-    (N == 0 -> T1 = computer, T2 = computer;
+    (N == 0 -> T1 = rng, T2 = rng;
      N == 1 -> human_playing(T1,T2);
      N == 2 -> T1 = human, T2 = human;
      write('Please enter 0, 1, or 2.'), nl, read_players(T1,T2))
@@ -65,8 +66,8 @@ read_players(T1,T2) :-
 human_playing(T1,T2) :- 
     write('Is human playing x or o (x moves first)? '),
     read(M),
-    (M == 'x' -> T1 = human, T2 = computer;
-     M == 'o' -> T1 = computer, T2 = human;
+    (M == 'x' -> T1 = human, T2 = rng;
+     M == 'o' -> T1 = rng, T2 = human;
      write('Please enter x or o.'), nl, human_playing(T1,T2)).
 
 play(P) :-
@@ -81,28 +82,6 @@ play(P) :-
 game_over(P, B) :-
     opponent_mark(P, M), win(B, M) -> output_winner(next_player(P));
     blank_mark(E), extract_row(B, 6, R), not(member(E,R)) -> output_winner(0).
-
-% Vérifier si un joueur a gagné
-win(B, M) :-
-    rows(B, R),
-    member(Row, R),
-    four_in_a_row(Row, M).
-
-win(B, M) :-
-    columns(B, Columns),
-    member(Column, Columns),
-    four_in_a_row(Column, M).
-
-win(B, M) :-
-    diagonals(B, Diagonals),
-    member(Diagonal, Diagonals),
-    four_in_a_row(Diagonal, M).
-
-% Vérifier 4 jetons consécutifs dans une liste
-four_in_a_row([M, M, M, M|_], M) :-
-    blank_mark(E),
-    M \= E.
-four_in_a_row([_|Tail], M) :- four_in_a_row(Tail, M).
 
 
 make_move(P, B) :-
@@ -131,13 +110,18 @@ make_move2(human, P, B, B2) :-
     nl
     .
 
-make_move2(computer, P, B, B2) :-
-    nl,
-    nl,
+make_move2(rng, P, B, B2) :-
+    write('Random AI is thinking about next move...'),
+    player_mark(P, M),
+    random_ai_move(B, M, I),
+    move(B,I,M,B2),
+    write('Random IA places '), write(M), write(' in column '), write(I), write('.'), nl,
+    sleep(0.5).
+
+make_move2(minmax, P, B, B2) :-
     write('Computer is thinking about next move...'),
     player_mark(P, M),
-    % minimax(0, B, M, S, U),
-    I == 5,
+    minimax(0, B, M, S, U),
     move(B,I,M,B2),
     nl,
     nl,
@@ -145,10 +129,8 @@ make_move2(computer, P, B, B2) :-
     write(M),
     write(' in column '),
     write(I),
-    write('.')
+    write('.'), nl
     .
-
-
 
 % Appliquer un mouvement sur le plateau
 move(Board, ColumnIndex, PlayerMark, NewBoard) :-

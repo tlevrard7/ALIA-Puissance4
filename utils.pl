@@ -1,6 +1,7 @@
 :- module(utils, [
     next_player/2,inverse_mark/2, player_mark/2, opponent_mark/2, blank_mark/1, maximizing/1,
-    transpose/2, rows/2, columns/2, diagonals/2, extract_row/3
+    transpose/2, rows/2, columns/2, diagonals/2, extract_row/3,
+    moves/2, win/2
 ]).
 
 
@@ -78,3 +79,17 @@ diagonal(Board, Diagonal) :-
     length(Diagonal, L),
     L >= 4.
 
+moves(B,L) :-
+    blank_mark(E),
+    extract_row(B, 6, R),
+    findall(N, nth1(N,R,E), L).
+
+% Vérifier si un joueur a gagné
+win(B, M) :-
+    rows(B, R), member(Row, R), four_in_a_row(Row, M);
+    columns(B, Columns), member(Column, Columns), four_in_a_row(Column, M);
+    diagonals(B, Diagonals), member(Diagonal, Diagonals), four_in_a_row(Diagonal, M).
+
+% Vérifier 4 jetons consécutifs dans une liste
+four_in_a_row([M, M, M, M|_], M).
+four_in_a_row([_|Tail], M) :- four_in_a_row(Tail, M).

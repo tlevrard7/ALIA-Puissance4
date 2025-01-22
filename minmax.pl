@@ -1,4 +1,4 @@
-:- module(minmax, [minimax/7]).
+:- module(minmax, [minimax/8]).
 :- use_module(utils,[win/2, moves/2, move/4]).
 
 
@@ -8,19 +8,20 @@
 % determines the value of a given board position
 %
 
-utility(B,U) :-
-    win(B,'x'),
+utility(B,U,PLAYER) :-
+    win(B,M),
     U = 70, % there is 69 winning combination in power 4
     !
     .
 
-utility(B,U) :-
-    win(B,'o'),
+utility(B,U,PLAYER) :-
+    inverse_mark(PLAYER,ADV),
+    win(B,ADV),
     U = (-70), % there is 69 winning combination in power 4
     !
     .
 
-utility(B,U) :-
+utility(B,U,_) :-
     U = 0
     .
 
@@ -41,7 +42,7 @@ possible_combination(B, M, COUNT):- replace_blank_list(B,L,M), findall(1, win(L,
 
 % Heuristic, toujours x - o
 % utilityestimate(B,U,M):- inverse_mark(M, M2), possible_combination(B, M, COUNT1), possible_combination(B, M2, COUNT2), U is COUNT1 - COUNT2.
-utilityestimate(B,U):- possible_combination(B, 'x', COUNTAI), possible_combination(B, 'o', COUNTP1), U is COUNTAI - COUNTP1.
+utilityestimate(B,U,PLAYER):- inverse_mark(PLAYER,ADV), possible_combination(B,PLAYER, COUNTAI), possible_combination(B, ADV, COUNTP1), U is COUNTAI - COUNTP1.
 
 %.......................................
 % minimax
@@ -52,31 +53,31 @@ utilityestimate(B,U):- possible_combination(B, 'x', COUNTAI), possible_combinati
 % If max depth attained then return estimate.
 dmax(3).
 
-minimax(D,B,M,COL,U, ALPHA, BETA) :-
+minimax(D,B,M,COL,U, ALPHA, BETA,PLAYER) :-
     D2 is D + 1,
     dmax(D2),
-    utilityestimate(B,U),      
+    utilityestimate(B,U,PLAYER),      
     !.
 
 % For the opening move we choose the know best starting move column 4.
 % Saves the user the trouble of waiting  for the computer to search the entire minimax tree.
-minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E]],M,COL,U, _, _) :-   
+minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E]],M,COL,U, _, _, _) :-   
     blank_mark(E),
     COL = 4,
     !.
 
-minimax(D,B,M,COL,U, ALPHA, BETA) :-
+minimax(D,B,M,COL,U, ALPHA, BETA,PLAYER) :-
     D2 is D + 1,
     moves(B,L),          %%% get the list of available moves
     !,
-    best(D2,B,M,L,COL,U, ALPHA, BETA),  %%% recursively determine the best available move
+    best(D2,B,M,L,COL,U, ALPHA, BETA,PLAYER),  %%% recursively determine the best available move
     !.
 
 % if there are no more available moves, 
 % then the minimax value is the utility of the given board position
 
-minimax(_,B,_,_,U, _, _) :-
-    utility(B,U)      
+minimax(_,B,_,_,U, _, _,PLAYER) :-
+    utility(B,U,PLAYER)      
     .
 
 
@@ -87,43 +88,43 @@ minimax(_,B,_,_,U, _, _) :-
 %
 
 % Pruning
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
+alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
     minimizing(M),    %%% If i'm minimizing, then previous player was maximizing with option ALPHA .
     U1 =< ALPHA,      %%% Thus if  (any other after =< COL =< ALPHA) then we know fully that this branch isn't getting picked
-	  !.
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
-	  NEWBETA is min(BETA,U1),
-    best(D,B,M,MOVES,COL2,U2, ALPHA, NEWBETA)
+	!.
+alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER,PLAYER):-
+	NEWBETA is min(BETA,U1),
+    best(D,B,M,MOVES,COL2,U2, ALPHA, NEWBETA,PLAYER)
     .
 
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
+alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
     maximizing(M),    %%% If i'm maximizing, then previous player was minimizing with option BETA.
     U1 >= BETA,       %%% Thus if (any other after >= COL >= BETA) then we know fully that this branch isn't getting picked
-	  !.
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
-	  NEWALPHA is max(ALPHA,U1),
-    best(D,B,M,MOVES,COL2,U2, NEWALPHA, BETA)
+	!.
+alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
+	NEWALPHA is max(ALPHA,U1),
+    best(D,B,M,MOVES,COL2,U2, NEWALPHA, BETA,PLAYER)
     .
 
 
 % if there is only one move left in the list...
 
-best(D,B,M,[COL1],COL,U, ALPHA, BETA) :-
+best(D,B,M,[COL1],COL,U, ALPHA, BETA,PLAYER) :-
     move(B,COL1,M,B2),        %%% apply that move to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
     !,  
-    minimax(D,B2,M2,_COL,U, ALPHA, BETA),  %%% then recursively search for the utility value of that move.
+    minimax(D,B2,M2,_COL,U, ALPHA, BETA,PLAYER),  %%% then recursively search for the utility value of that move.
     COL = COL1, !
     .
 
 % if there is more than one move in the list...
 
-best(D,B,M,[COL1|T],COL,U, ALPHA, BETA) :-
+best(D,B,M,[COL1|T],COL,U, ALPHA, BETA,PLAYER) :-
     move(B,COL1,M,B2),             %%% apply the first move (in the list) to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
     !,
-    minimax(D,B2,M2,_COL,U1, ALPHA, BETA),                         %%% recursively search for the utility value of that move,
-    alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2),         %%% stop searching if we already know it's not getting picked, else continue
+    minimax(D,B2,M2,_COL,U1, ALPHA, BETA,PLAYER),                         %%% recursively search for the utility value of that move,
+    alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2,PLAYER),         %%% stop searching if we already know it's not getting picked, else continue
     better(D,M,COL1,U1,COL2,U2,COL,U)                              %%% and choose the better of the two moves (based on their respective utility values).  
 	  .
 

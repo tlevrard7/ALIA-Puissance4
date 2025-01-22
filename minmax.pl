@@ -35,13 +35,13 @@ moves(B,L) :-
 
 utility(B,U) :-
     win(B,'x'),
-    U = 1, 
+    U = 70, % there is 69 winning combination in power 4
     !
     .
 
 utility(B,U) :-
     win(B,'o'),
-    U = (-1), 
+    U = (-70), % there is 69 winning combination in power 4
     !
     .
 
@@ -56,8 +56,11 @@ replace_blank([L|R],[L|T],M):- L \= ".", replace_blank(R,T,M).
 replace_blank_list([],[],_).
 replace_blank_list([L1|R],[L2|T],M):- replace_blank(L1,L2,M), replace_blank_list(R,T,M),!.
 
-possible_combination(B, M, Count):- replace_blank_list(B,L,M), findall(1, win(L,M), W), length(W, Count).
-% to continue !!!!!!!!!!!!!!!!!
+possible_combination(B, M, COUNT):- replace_blank_list(B,L,M), findall(1, win(L,M), W), length(W, COUNT).
+
+% toujours x - o
+% utilityestimate(B,U,M):- inverse_mark(M, M2), possible_combination(B, M, COUNT1), possible_combination(B, M2, COUNT2), U is COUNT1 - COUNT2.
+utilityestimate(B,U):- possible_combination(B, 'x', COUNTAI), possible_combination(B, 'o', COUNTP1), U is COUNTAI - COUNTP1.
 
 %.......................................
 % minimax
@@ -66,11 +69,13 @@ possible_combination(B, M, Count):- replace_blank_list(B,L,M), findall(1, win(L,
 % For tic-tac-toe, optimal play will always result in a tie, so the algorithm is effectively playing not-to-lose.
 
 % If max depth attained then return estimate.
-% minimax(dmax,B,M,COL,U, ALPHA, BETA) :-
-%     D2 is D + 1,
-%     D2 == DMAX,
-%     utilityestimate(B,U),      
-%     !.
+dmax(3).
+
+minimax(D,B,M,COL,U, ALPHA, BETA) :-
+    D2 is D + 1,
+    dmax(D2),
+    utilityestimate(B,U),      
+    !.
 
 % For the opening move we choose the know best starting move column 4.
 % Saves the user the trouble of waiting  for the computer to search the entire minimax tree.

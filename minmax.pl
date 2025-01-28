@@ -8,21 +8,22 @@
 % determines the value of a given board position
 %
 
-utility(B,U) :-
-    win(B,'x'),
-    U = 70, % there is 69 winning combination in power 4
+utility(B, U, Player) :-
+    win(B, Player),    % Si le joueur gagne
+    U = 70,
     !
     .
 
-utility(B,U) :-
-    win(B,'o'),
-    U = (-70), % there is 69 winning combination in power 4
+utility(B, U, Player) :-
+    inverse_mark(Player, Opponent),  % Si l adversaire gagne
+    win(B, Opponent),
+    U = -70,
     !
     .
 
 utility(B,U) :-
     U = 0
-    .
+    . % Sinon, égalité ou pas de victoire pour le moment
 
 %.......................................
 % Estimation
@@ -37,11 +38,18 @@ replace_blank([L|R],[L|T],M):- L \= ".", replace_blank(R,T,M).
 replace_blank_list([],[],_).
 replace_blank_list([L1|R],[L2|T],M):- replace_blank(L1,L2,M), replace_blank_list(R,T,M),!.
 
-possible_combination(B, M, COUNT):- replace_blank_list(B,L,M), findall(1, win(L,M), W), length(W, COUNT).
+possible_combination(B, M, COUNT) :-
+    replace_blank_list(B, L, M),      % Remplace les cases vides par le jeton du joueur
+    findall(1, win(L, M), W),         % Trouve toutes les combinaisons gagnantes pour le joueur
+    length(W, COUNT)                  % Compte ces combinaisons
+    .
 
-% Heuristic, toujours x - o
-% utilityestimate(B,U,M):- inverse_mark(M, M2), possible_combination(B, M, COUNT1), possible_combination(B, M2, COUNT2), U is COUNT1 - COUNT2.
-utilityestimate(B,U):- possible_combination(B, 'x', COUNTAI), possible_combination(B, 'o', COUNTP1), U is COUNTAI - COUNTP1.
+utilityestimate(B, U, Player) :-
+    inverse_mark(Player, Opponent),
+    possible_combination(B, Player, COUNTAI),    % Combinaisons gagnantes pour le joueur
+    possible_combination(B, Opponent, COUNTP1), % Combinaisons gagnantes pour l adversaire
+    U is COUNTAI - COUNTP1
+    .
 
 %.......................................
 % minimax
@@ -55,7 +63,7 @@ dmax(3).
 minimax(D,B,M,COL,U, ALPHA, BETA) :-
     D2 is D + 1,
     dmax(D2),
-    utilityestimate(B,U),      
+    utilityestimate(B, U, Player),
     !.
 
 % For the opening move we choose the know best starting move column 4.
@@ -75,8 +83,8 @@ minimax(D,B,M,COL,U, ALPHA, BETA) :-
 % if there are no more available moves, 
 % then the minimax value is the utility of the given board position
 
-minimax(_,B,_,_,U, _, _) :-
-    utility(B,U)      
+minimax(_, B, Player, _, U, _, _) :-
+    utility(B, U, Player)
     .
 
 
@@ -123,7 +131,7 @@ best(D,B,M,[COL1|T],COL,U, ALPHA, BETA) :-
     inverse_mark(M,M2), 
     !,
     minimax(D,B2,M2,_COL,U1, ALPHA, BETA),                         %%% recursively search for the utility value of that move,
-    alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2),         %%% stop searching if we already know it's not getting picked, else continue
+    alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2),         %%% stop searching if we already know it s not getting picked, else continue
     better(D,M,COL1,U1,COL2,U2,COL,U)                              %%% and choose the better of the two moves (based on their respective utility values).  
 	  .
 
@@ -134,31 +142,27 @@ best(D,B,M,[COL1|T],COL,U, ALPHA, BETA) :-
 %
 % if both moves have the same utility value, then one is chosen at random.
 
-better(D,M,COL1,U1,COL2,U2,     COL,U) :-
-    maximizing(M),                     %%% if the player is maximizing
-    U1 > U2,                           %%% then greater is better.
+better(_, Player, COL1, U1, COL2, U2, COL, U) :-
+    maximizing(Player),    % Si le joueur maximise
+    U1 > U2,
     COL = COL1,
     U = U1,
-    !
-    .
+    !.
 
-better(D,M,COL1,U1,COL2,U2,     COL,U) :-
-    minimizing(M),                     %%% if the player is minimizing,
-    U1 < U2,                           %%% then lesser is better.
+better(_, Player, COL1, U1, COL2, U2, COL, U) :-
+    minimizing(Player),    % Si le joueur minimise
+    U1 < U2,
     COL = COL1,
-    U = U1, 
-    !
-    .
-
-better(D,M,COL1,U1,COL2,U2,     COL,U) :-
-    U1 == U2,                          %%% if moves have equal utility,
-    COL = COL1,                        %%% Pick first for now
     U = U1,
-    !
-    .
+    !.
 
-better(D,M,COL1,U1,COL2,U2,     COL,U) :-        %%% otherwise, second move is better
+better(_, _, COL1, U1, COL2, U2, COL, U) :-
+    U1 == U2,              % Si les utilités sont égales
+    COL = COL1,
+    U = U1,
+    !.
+
+better(_, _, _, _, COL2, U2, COL, U) :- % Par défaut, on choisit le deuxième coup
     COL = COL2,
     U = U2,
-    !
-    .
+    !.

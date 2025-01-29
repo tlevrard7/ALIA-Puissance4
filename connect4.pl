@@ -4,7 +4,7 @@
 :- use_module(minmax).
 
 player_types([human,random, minmax_winnings, minmax_naif, minmax_strategique, minimax_gpt]). % Liste contenant tous les types de joueurs possibles
-ai_types([random, minmax_winnings, minimax_gpt]). % Liste contenant tous les types de joueurs possibles
+ai_types([random, minmax_winnings, minimax_gpt, minmax_noworky]). % Liste contenant tous les types de joueurs possibles
 
 % Point d'entrée du programme
 run :- 
@@ -131,5 +131,6 @@ make_move(P, B, C, I) :-
         C == minmax_winnings -> minmax_winnings_move(B, P, I);            % Détermine le coup si IA Minimax
         C == minmax_naif -> minmax_naif_move(B, P, I);                    % Détermine le coup si IA Minimax
         C == minmax_strategique -> minmax_strategique_move(B, P, I);          % Détermine le coup si IA Minimax
-        C == minimax_gpt -> minimax_gpt_move(B, P, I)          % Détermine le coup si IA Minimax
+        C == minimax_gpt -> minimax_gpt_move(B, P, I);          % Détermine le coup si IA Minimax
+        C == minmax_noworky -> minmax_noworky_move(B, P, I)          % Détermine le coup si IA Minimax
     ).

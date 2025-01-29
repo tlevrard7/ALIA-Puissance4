@@ -1,4 +1,4 @@
-:- module(minmax2, [minimax/6]).
+:- module(minmax2, [minimax2/6]).
 :- use_module(utils,[win/2, moves/2, move/4]).
 %.......................................
 % utility
@@ -31,13 +31,13 @@ utility(B,U,_, _) :-
 % Save the user the trouble of waiting  for the computer to search the entire minimax tree 
 % by simply selecting a random square.
 
-minimax(D,[E,E,E, E,E,E, E,E,E],M,PLAYER,   COL,U) :-   
+minimax2(D,[E,E,E, E,E,E, E,E,E],M,PLAYER,   COL,U) :-   
     blank_mark(E),
     COL=4,
     !.
 
 dmax(4).
-minimax(D,B,M,PLAYER,   COL,U) :-
+minimax2(D,B,M,PLAYER,   COL,U) :-
     D2 is D + 1,
     not(dmax(D2)),
     not(win(B, x)),  %%% Auccun gagnant sinon utility
@@ -51,9 +51,9 @@ minimax(D,B,M,PLAYER,   COL,U) :-
 % if there are no more available moves, 
 % then the minimax value is the utility of the given board position
 
-minimax(D,B,M,PLAYER,   COL,U) :-
+minimax2(D,B,M,PLAYER,   COL,U) :-
     utility(B,U, M, PLAYER),
-    write(M),write(PLAYER),write(B), writeln(U),
+    % write(M),write(PLAYER),write(B), writeln(U),
     COL=7
     .
 
@@ -70,7 +70,7 @@ best(D,B,M,PLAYER,[COL1],   COL,U) :-
     move(B,COL1,M,B2),        %%% apply that move to the board,
     inverse_mark(M,M2), 
     !,  
-    minimax(D,B2,M2,PLAYER,_COL,U),  %%% then recursively search for the utility value of that move.
+    minimax2(D,B2,M2,PLAYER,_COL,U),  %%% then recursively search for the utility value of that move.
     COL = COL1, 
     !.
 
@@ -80,7 +80,7 @@ best(D,B,M,PLAYER,[COL1|T], COL,U) :-
     move(B,COL1,M,B2),             %%% apply the first move (in the list) to the board,
     inverse_mark(M,M2), 
     !,
-    minimax(D,B2,M2,PLAYER,_COL,U1),      %%% recursively search for the utility value of that move,
+    minimax2(D,B2,M2,PLAYER,_COL,U1),      %%% recursively search for the utility value of that move,
     best(D,B,M,PLAYER,T,COL2,U2),         %%% determine the best move of the remaining moves,     
     better(D,M,PLAYER,COL1,U1,COL2,U2,  COL,U)  %%% and choose the better of the two moves (based on their respective utility values)
     .

@@ -10,7 +10,6 @@
 
 utility(B,U,PLAYER) :-
     win(B,PLAYER),
-    write(PLAYER), write('won'), writeln(B),
     U = 1000, % il y a 69 combinaisons gagnantes dans puissance 4
     !
     .
@@ -18,7 +17,6 @@ utility(B,U,PLAYER) :-
 utility(B,U,PLAYER) :-
     inverse_mark(PLAYER,ADV),
     win(B,ADV),
-    write(PLAYER), write('lost'), writeln(B),
     U = (-1000), % il y a 69 combinaisons gagnantes dans puissance 4
     !
     .
@@ -55,7 +53,6 @@ utilityestimate_4aligned(B, U, M, Player, COL) :-
     possible_combination(B, Player, COUNTAI),   % Combinaisons gagnantes pour le joueur
     possible_combination(B, Opponent, COUNTP1), % Combinaisons gagnantes pour l adversaire
     U is COUNTAI - COUNTP1%,
-    %write(Player),write(Opponent),write(COUNTAI), write(" "), writeln(COUNTP1)
     .
 %.............................................................................................
 % utility avec nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 4
@@ -174,7 +171,6 @@ minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,
 minimax(D,B,M,COL,U, ALPHA, BETA, PLAYER, Utility_func) :-
     D2 is D + 1,
     not(dmax(D2)),
-    write(D2), writeln(B),
     not(win(B, x)),  %%% Auccun gagnant sinon utility
     not(win(B, o)),
     moves(B,L),  %%% obtient la liste de tous les coups possible

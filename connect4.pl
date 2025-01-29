@@ -3,14 +3,14 @@
 :- use_module(ai).
 :- use_module(minmax).
 
-player_types([human,random, minmax_winnings, minmax_naif, minmax_strategique]). % Liste contenant tous les types de joueurs possibles
-ai_types([random, minmax_winnings, minmax_naif, minmax_strategique]). % Liste contenant tous les types de joueurs possibles
+player_types([human,random, minmax_winnings, minmax_naif, minmax_strategique, minimax_gpt]). % Liste contenant tous les types de joueurs possibles
+ai_types([random, minmax_winnings, minimax_gpt]). % Liste contenant tous les types de joueurs possibles
 
 % Point d'entrée du programme
 run :- 
     initialize(B,C1,C2), 
     player_mark(1, M1),           % On associe à chacun des joueurs un symbole (M1 ou M2)
-    play_output(B, C1, C2, M1, W); % Le joueur 1 commence à jouer
+    play_output(B, C1, C2, M1, W), % Le joueur 1 commence à jouer
     exit.
 
 % Initialise le jeu en configurant les joueurs (selon les entrées de l'utilisateur) et la grille de jeu
@@ -130,5 +130,6 @@ make_move(P, B, C, I) :-
         C == random -> random_ai_move(B, P, I);                           % Détermine le coup si IA aléatoire
         C == minmax_winnings -> minmax_winnings_move(B, P, I);            % Détermine le coup si IA Minimax
         C == minmax_naif -> minmax_naif_move(B, P, I);                    % Détermine le coup si IA Minimax
-        C == minmax_strategique -> minmax_strategique_move(B, P, I)          % Détermine le coup si IA Minimax
+        C == minmax_strategique -> minmax_strategique_move(B, P, I);          % Détermine le coup si IA Minimax
+        C == minimax_gpt -> minimax_gpt_move(B, P, I)          % Détermine le coup si IA Minimax
     ).

@@ -138,6 +138,7 @@ replace_column([Head|Tail], Index, NewColumn, [Head|NewTail]) :-
 % Vérifie si le joueur associé au symbole 'M' a gagné pour la grille 'B' donnée 
 % càd s'il a 4 jetons consécutifs dans une des lignes, une des colonnes ou une des diagonales
 win(B, M) :-
+    blank_mark(E), M \= E,
     rows(B, R), member(Row, R), four_in_a_row(Row, M);  % Vérifie si le joueur a 4 jetons consécutifs dans une des lignes
     columns(B, Columns), member(Column, Columns), four_in_a_row(Column, M);  % Idem mais dans une des colonnes
     diagonals(B, Diagonals), member(Diagonal, Diagonals), four_in_a_row(Diagonal, M). % Idem mais dans une des diagonales

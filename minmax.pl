@@ -9,15 +9,17 @@
 %
 
 utility(B,U,PLAYER) :-
-    win(B,M),
-    U = 70, % il y a 69 combinaisons gagnantes dans puissance 4
+    win(B,PLAYER),
+    write(PLAYER), write('won'), writeln(B),
+    U = 1000, % il y a 69 combinaisons gagnantes dans puissance 4
     !
     .
 
 utility(B,U,PLAYER) :-
     inverse_mark(PLAYER,ADV),
     win(B,ADV),
-    U = (-70), % il y a 69 combinaisons gagnantes dans puissance 4
+    write(PLAYER), write('lost'), writeln(B),
+    U = (-1000), % il y a 69 combinaisons gagnantes dans puissance 4
     !
     .
 
@@ -32,8 +34,8 @@ utility(B,U,_) :-
 % On calcule la différence de combinaison de gagné de chaque joueur
 
 replace_blank([],[],_).
-replace_blank(["."|R],[M|T],M):- replace_blank(R,T,M).
-replace_blank([L|R],[L|T],M):- L \= ".", replace_blank(R,T,M).
+replace_blank([E|R],[M|T],M):- blank_mark(E), replace_blank(R,T,M).
+replace_blank([L|R],[L|T],M):-  blank_mark(E), L \= E, replace_blank(R,T,M).
 
 replace_blank_list([],[],_).
 replace_blank_list([L1|R],[L2|T],M):- replace_blank(L1,L2,M), replace_blank_list(R,T,M),!.
@@ -42,22 +44,18 @@ possible_combination(B, M, COUNT) :-
     replace_blank_list(B, L, M),      % Remplace les cases vides par le jeton du joueur
     findall(1, win(L, M), W),         % Trouve toutes les combinaisons gagnantes pour le joueur
     length(W, COUNT)                  % Compte ces combinaisons
-    .                  
+    .             
    
 %.......................................
 % utility de base avec seulement combinaisons gagnantes
 %.......................................
-utilityestimate(B,U):- 
-    possible_combination(B, 'x', COUNTAI), 
-    possible_combination(B, 'o', COUNTP1), 
-    U is COUNTAI - COUNTP1.
 
 utilityestimate_4aligned(B, U, M, Player, COL) :-
     inverse_mark(Player, Opponent),
     possible_combination(B, Player, COUNTAI),   % Combinaisons gagnantes pour le joueur
     possible_combination(B, Opponent, COUNTP1), % Combinaisons gagnantes pour l adversaire
-    U is COUNTAI - COUNTP1,
-    write(Player),write(Opponent),write(COUNTAI), write(" "), writeln(COUNTP1)
+    U is COUNTAI - COUNTP1%,
+    %write(Player),write(Opponent),write(COUNTAI), write(" "), writeln(COUNTP1)
     .
 %.............................................................................................
 % utility avec nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 4
@@ -157,21 +155,14 @@ utilityestimate_strategique(B, U, M, PLAYER, COL):-
     findall(1, win(BTEST,OPPONENT), W), 
     length(W, COUNT), 
     % Estimate
-    (maximizing(M) -> U is (NCASES + COUNT*6); U is -(NCASES + COUNT*6)).
+    (M == Player -> U is (NCASES + COUNT*6); U is -(NCASES + COUNT*6)).
 
 %.......................................
 % minimax
 %.......................................
 % L'algorithme minimax considère toujours que l'adversaire fera le meilleur choix.
 
-% Si la profondeur maximal est atteint, alors retourne une estimation
-dmax(3).
 
-minimax(D,B,M,COL,U, ALPHA, BETA,PLAYER, Utility_func) :-
-    D2 is D + 1,
-    dmax(D2),
-    call(Utility_func, B, U, M, PLAYER, COL),      
-    !.
 
 % Pour le coup d'ouverture, on choisit la meilleur stratégie connue : commencer au centre (colonne 4)
 % Permet d'éviter d'attendre que l'ordinateur calcule l'entièreté de l'arbre minimax
@@ -180,18 +171,45 @@ minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,
     COL = 4,
     !.
 
-minimax(D,B,M,COL,U, ALPHA, BETA,PLAYER, Utility_func) :-
+minimax(D,B,M,COL,U, ALPHA, BETA, PLAYER, Utility_func) :-
     D2 is D + 1,
-    moves(B,L),          %%% obtient la liste de tous les coups possible
-    !,
-    best(D2,B,M,L,COL,U, ALPHA, BETA,PLAYER, Utility_func),  %%% détermine récursivement le meilleur coup possible
-    !.
+    not(dmax(D2)),
+    write(D2), writeln(B),
+    not(win(B, x)),  %%% Auccun gagnant sinon utility
+    not(win(B, o)),
+    moves(B,L),  %%% obtient la liste de tous les coups possible
+    %writeln("moved"),
+    %writeln(L),
+    L\=[],       %%% not égalité
+    %writeln("continued"),
+    %writeln(L),
+    !,          
+    best(D2,B,M,L,COL,U, ALPHA, BETA,PLAYER, Utility_func), %%% détermine récursivement le meilleur coup possible
+    %writeln('did best'),
+    !. 
+
 
 % si il y a pas de coup possible,
 % alors la valeur minimax est l'utilité de la position du plateau donnée
-minimax(_,B,_,_,U, _, _,PLAYER, Utility_func) :-
-    utility(B,U,PLAYER)      
-    .
+% Si la profondeur maximal est atteint, alors retourne une estimation
+
+minimax(_,B,_,_,U, _, _, PLAYER, Utility_func) :-
+    % writeln("utilitied"),
+    %not(dmax(D2)),
+    %(win(B,x);win(B,o)),
+    utility(B,U,PLAYER),
+
+    %writeln(U),
+    !. 
+
+dmax(4).
+% minimax(D,B,M,COL,U, _, _, PLAYER, Utility_func) :-
+%     writeln("utilitied"),
+%     call(Utility_func, B, U, M, PLAYER, COL). 
+
+
+   
+    
 
 
 %.......................................
@@ -202,7 +220,7 @@ minimax(_,B,_,_,U, _, _,PLAYER, Utility_func) :-
 
 % Pruning
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func):-
-    minimizing(M),    %%% Si je suis en train de minimiser, alors le joueur précédent était en train maximiser avec l'option ALPHA.
+    M \= PLAYER,    %%% Si je suis en train de minimiser, alors le joueur précédent était en train maximiser avec l'option ALPHA.
     U1 =< ALPHA,      %%% Donc si (n'importe quels autres après =< COL =< ALPHA) alors on sait que cette branche ne sera pas choisi
 	!.
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func):-
@@ -211,7 +229,7 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func):-
     .
 
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func):-
-    maximizing(M),    %%% Si je suis en train de maximiser, alors le joueur précédent était en train minimiser avec l'option BETA.
+    M == PLAYER,    %%% Si je suis en train de maximiser, alors le joueur précédent était en train minimiser avec l'option BETA.
     U1 >= BETA,       %%% Donc si (n'importe quels autres après >= COL >= BETA) alors on sait que cette branche ne sera pas choisi
 	!.
 
@@ -240,8 +258,9 @@ best(D,B,M,[COL1|T],COL,U, ALPHA, BETA,PLAYER, Utility_func) :-
     inverse_mark(M,M2), 
     !,
     minimax(D,B2,M2,_COL,U1, ALPHA, BETA,PLAYER, Utility_func),                  %%% cherche récursivement la valeur d'utilité de ce coup,
-    alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func),  %%% arrête de chercher si on sait déjà qu'il ne sera pas choisi, sinon on continue
-    better(D,M,COL1,U1,COL2,U2,COL,U)                                            %%% et choisit le meilleur des 2 coups (selon leur valeur d'utilité respective).
+    %alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func),  %%% arrête de chercher si on sait déjà qu'il ne sera pas choisi, sinon on continue
+    best(D,B,M,T,COL2, U2, ALPHA, BETA, PLAYER, Utility_func),
+    better(D,M,PLAYER,COL1,U1,COL2,U2,COL,U)                                            %%% et choisit le meilleur des 2 coups (selon leur valeur d'utilité respective).
     .                              
 
 
@@ -251,27 +270,27 @@ best(D,B,M,[COL1|T],COL,U, ALPHA, BETA,PLAYER, Utility_func) :-
 % retourne le meilleur des deux coups selon leur valeur d'utilité respective
 %
 % si les deux coups ont la même valeur d'utilité, alors un des deux est choisi aléatoirement.
-better(_, Player, COL1, U1, COL2, U2, COL, U) :-
-    maximizing(Player),    % Si le joueur maximise
+better(_, M, Player, COL1, U1, COL2, U2, COL, U) :-
+    M == Player,    % Si le joueur maximise
     U1 > U2,
     COL = COL1,
     U = U1,
     !.
 
-better(_, Player, COL1, U1, COL2, U2, COL, U) :-
-    minimizing(Player),    % Si le joueur minimise
+better(_, M, Player, COL1, U1, COL2, U2, COL, U) :-
+    M \= Player,    % Si le joueur minimise
     U1 < U2,
     COL = COL1,
     U = U1,
     !.
 
-better(_, _, COL1, U1, COL2, U2, COL, U) :-
+better(_, _, _, COL1, U1, COL2, U2, COL, U) :-
     U1 == U2,              % Si les utilités sont égales
     COL = COL1,
     U = U1,
     !.
 
-better(_, _, _, _, COL2, U2, COL, U) :- % Par défaut, on choisit le deuxième coup
+better(_, _, _, _, _, COL2, U2, COL, U) :- % Par défaut, on choisit le deuxième coup
     COL = COL2,
     U = U2,
     !.

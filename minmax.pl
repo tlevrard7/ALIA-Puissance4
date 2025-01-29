@@ -5,7 +5,7 @@
 %.......................................
 % utility
 %.......................................
-% determines the value of a given board position
+% détermine la valuer de la position donné du plateau
 %
 
 utility(B, U, Player) :-
@@ -28,8 +28,8 @@ utility(B,U) :-
 %.......................................
 % Estimation
 %.......................................
-% In case we arrive at max depth.
-% We calculate the difference of possible winning moves for each player.
+% Dans le cas où on arrive à la profondeur max.
+% On calcule la différence de combinaison de gagné de chaque joueur
 
 replace_blank([],[],_).
 replace_blank(["."|R],[M|T],M):- replace_blank(R,T,M).
@@ -54,10 +54,9 @@ utilityestimate(B, U, Player) :-
 %.......................................
 % minimax
 %.......................................
-% The minimax algorithm always assumes an optimal opponent.
-% For tic-tac-toe, optimal play will always result in a tie, so the algorithm is effectively playing not-to-lose.
+% L'algorithme minimax considère toujours que l'adversaire fera le meilleur choix.
 
-% If max depth attained then return estimate.
+% Si la profondeur maximal est atteint, alors retourne une estimation
 dmax(3).
 
 minimax(D,B,M,COL,U, ALPHA, BETA) :-
@@ -66,8 +65,8 @@ minimax(D,B,M,COL,U, ALPHA, BETA) :-
     utilityestimate(B, U, Player),
     !.
 
-% For the opening move we choose the know best starting move column 4.
-% Saves the user the trouble of waiting  for the computer to search the entire minimax tree.
+% Pour le coup d'ouverture, on choisit la meilleur stratégie connue : commencer au centre (colonne 4)
+% Permet d'éviter d'attendre que l'ordinateur calcule l'entièreté de l'arbre minimax
 minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E]],M,COL,U, _, _) :-   
     blank_mark(E),
     COL = 4,
@@ -75,13 +74,13 @@ minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,
 
 minimax(D,B,M,COL,U, ALPHA, BETA) :-
     D2 is D + 1,
-    moves(B,L),          %%% get the list of available moves
+    moves(B,L),          %%% obtient la liste de tous les coups possible
     !,
-    best(D2,B,M,L,COL,U, ALPHA, BETA),  %%% recursively determine the best available move
+    best(D2,B,M,L,COL,U, ALPHA, BETA),  %%% détermine récursivement le meilleur coup possible
     !.
 
-% if there are no more available moves, 
-% then the minimax value is the utility of the given board position
+% si il y a pas de coup possible,
+% alors la valeur minimax est l'utilité de la position du plateau donnée
 
 minimax(_, B, Player, _, U, _, _) :-
     utility(B, U, Player)
@@ -91,13 +90,13 @@ minimax(_, B, Player, _, U, _, _) :-
 %.......................................
 % best
 %.......................................
-% determines the best move in a given list of moves by recursively calling minimax
+% détermine le meilleur coup possible d'une liste de coup donnée produit récursivement par minimax
 %
 
 % Pruning
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
-    minimizing(M),    %%% If i'm minimizing, then previous player was maximizing with option ALPHA .
-    U1 =< ALPHA,      %%% Thus if  (any other after =< COL =< ALPHA) then we know fully that this branch isn't getting picked
+    minimizing(M),    %%% Si je suis en train de minimiser, alors le joueur précédent était en train maximiser avec l'option ALPHA.
+    U1 =< ALPHA,      %%% Donc si (n'importe quels autres après =< COL =< ALPHA) alors on sait que cette branche ne sera pas choisi
 	  !.
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
 	  NEWBETA is min(BETA,U1),
@@ -105,8 +104,8 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
     .
 
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
-    maximizing(M),    %%% If i'm maximizing, then previous player was minimizing with option BETA.
-    U1 >= BETA,       %%% Thus if (any other after >= COL >= BETA) then we know fully that this branch isn't getting picked
+    maximizing(M),    %%% Si je suis en train de maximiser, alors le joueur précédent était en train minimiser avec l'option BETA.
+    U1 >= BETA,       %%% Donc si (n'importe quels autres après >= COL >= BETA) alors on sait que cette branche ne sera pas choisi
 	  !.
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
 	  NEWALPHA is max(ALPHA,U1),
@@ -114,34 +113,33 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
     .
 
 
-% if there is only one move left in the list...
+% si il y a seulement un seul coup restant dans la liste
 
 best(D,B,M,[COL1],COL,U, ALPHA, BETA) :-
-    move(B,COL1,M,B2),        %%% apply that move to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    move(B,COL1,M,B2),        %%% applique ce coup au plateau, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
     !,  
-    minimax(D,B2,M2,_COL,U, ALPHA, BETA),  %%% then recursively search for the utility value of that move.
+    minimax(D,B2,M2,_COL,U, ALPHA, BETA),  %%% et cherche récursivement la valeur d'utilité de ce coup.
     COL = COL1, !
     .
 
-% if there is more than one move in the list...
+% si il y a plus d'un coup dans la liste...
 
 best(D,B,M,[COL1|T],COL,U, ALPHA, BETA) :-
-    move(B,COL1,M,B2),             %%% apply the first move (in the list) to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    move(B,COL1,M,B2),             %%% applique le premier coup (dans la liste) au plateau, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
     !,
-    minimax(D,B2,M2,_COL,U1, ALPHA, BETA),                         %%% recursively search for the utility value of that move,
-    alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2),         %%% stop searching if we already know it s not getting picked, else continue
-    better(D,M,COL1,U1,COL2,U2,COL,U)                              %%% and choose the better of the two moves (based on their respective utility values).  
+    minimax(D,B2,M2,_COL,U1, ALPHA, BETA),                         %%% cherche récursivement la valeur d'utilité de ce coup,
+    alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2),         %%% arrête de chercher si on sait déjà qu'il ne sera pas choisi, sinon on continue
+    better(D,M,COL1,U1,COL2,U2,COL,U)                              %%% et choisit le meilleur des 2 coups (selon leur valeur d'utilité respective).  
 	  .
 
 %.......................................
 % better
 %.......................................
-% returns the better of two moves based on their respective utility values.
+% retourne le meilleur des deux coups selon leur valeur d'utilité respective
 %
-% if both moves have the same utility value, then one is chosen at random.
-
+% si les deux coups ont la même valeur d'utilité, alors un des deux est choisi aléatoirement.
 better(_, Player, COL1, U1, COL2, U2, COL, U) :-
     maximizing(Player),    % Si le joueur maximise
     U1 > U2,

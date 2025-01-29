@@ -42,24 +42,29 @@ possible_combination(B, M, COUNT) :-
     replace_blank_list(B, L, M),      % Remplace les cases vides par le jeton du joueur
     findall(1, win(L, M), W),         % Trouve toutes les combinaisons gagnantes pour le joueur
     length(W, COUNT)                  % Compte ces combinaisons
-    .
-
+    .                  
+   
 %.......................................
 % utility de base avec seulement combinaisons gagnantes
 %.......................................
+utilityestimate(B,U):- 
+    possible_combination(B, 'x', COUNTAI), 
+    possible_combination(B, 'o', COUNTP1), 
+    U is COUNTAI - COUNTP1.
 
-utilityestimate_4aligned(B, U, Player) :-
+utilityestimate_4aligned(B, U, M, Player, COL) :-
     inverse_mark(Player, Opponent),
     possible_combination(B, Player, COUNTAI),   % Combinaisons gagnantes pour le joueur
     possible_combination(B, Opponent, COUNTP1), % Combinaisons gagnantes pour l adversaire
-    U is COUNTAI - COUNTP1
+    U is COUNTAI - COUNTP1,
+    write(Player),write(Opponent),write(COUNTAI), write(" "), writeln(COUNTP1)
     .
 %.............................................................................................
 % utility avec nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 4
 %.............................................................................................
 
 % Fonction d'estimation basée sur le nombre de combinaisons  où il manque 1 jeton pour avoir un alignement à 4
-utilityestimate_3aligned(B, U, Player) :-
+utilityestimate_3aligned(B, U, M, Player, COL) :-
     inverse_mark(Player, Opponent),
     possible_3aligned(B, Player, CountP1),
     possible_3aligned(B, Opponent, CountP2),
@@ -91,7 +96,7 @@ three_in_a_row([_|Tail], M) :- three_in_a_row(Tail, M).  % Recherche récursive 
 %.............................................................................................
 
 % Fonction d'estimation basée sur le nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 3
-utilityestimate_2aligned(B, U, Player) :-
+utilityestimate_2aligned(B, U, M, Player, COL) :-
     inverse_mark(Player, Opponent),
     possible_2aligned(B, Player, CountP1),
     possible_2aligned(B, Opponent, CountP2),
@@ -120,12 +125,12 @@ two_in_a_row([_|Tail], M) :- two_in_a_row(Tail, M).  % Recherche récursive dans
 %.............................................................................................
 
 % Fonction d'estimation globale en tenant compte des alignements à 2, 3 jetons
-utilityestimate_naif(B, U, Player) :-
+utilityestimate_naif(B, U, M, Player, COL) :-
     inverse_mark(Player, Opponent),
     
     % Calcul des combinaisons pour chaque alignement (3 et 2 jetons)
-    utilityestimate_3aligned(B, U_3aligned, Player),
-    utilityestimate_2aligned(B, U_2aligned, Player),
+    utilityestimate_3aligned(B, U_3aligned, M, Player, COL),
+    utilityestimate_2aligned(B, U_2aligned, M, Player, COL),
     
     % Pondération des alignements 
     WeightP3 = 5,  
@@ -141,18 +146,16 @@ utilityestimate_naif(B, U, Player) :-
 
 equals(A,B):- A == B.
 
-utilityestimate_strategique(B,U,M, COL):-
+utilityestimate_strategique(B, U, M, PLAYER, COL):-
     % Nombre de cases dans la colonne strategique du centre
     nth1(4,B,COLONNE_CENTRALE),
     include(equals(M),COLONNE_CENTRALE, CASES),
     length(CASES, NCASES),
-    writeln(NCASES),
     % Nombre de coup gagnants bloqués pour l'adversaire
     inverse_mark(M,OPPONENT), 
     move(B,COL,OPPONENT,BTEST), 
     findall(1, win(BTEST,OPPONENT), W), 
     length(W, COUNT), 
-    writeln(COUNT),
     % Estimate
     (maximizing(M) -> U is (NCASES + COUNT*6); U is -(NCASES + COUNT*6)).
 
@@ -167,7 +170,7 @@ dmax(3).
 minimax(D,B,M,COL,U, ALPHA, BETA,PLAYER, Utility_func) :-
     D2 is D + 1,
     dmax(D2),
-    Utility_func(B,U,PLAYER),      
+    call(Utility_func, B, U, M, PLAYER, COL),      
     !.
 
 % Pour le coup d'ouverture, on choisit la meilleur stratégie connue : commencer au centre (colonne 4)
@@ -186,7 +189,6 @@ minimax(D,B,M,COL,U, ALPHA, BETA,PLAYER, Utility_func) :-
 
 % si il y a pas de coup possible,
 % alors la valeur minimax est l'utilité de la position du plateau donnée
-
 minimax(_,B,_,_,U, _, _,PLAYER, Utility_func) :-
     utility(B,U,PLAYER)      
     .
@@ -207,10 +209,12 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func):-
 	NEWBETA is min(BETA,U1),
     best(D,B,M,MOVES,COL2,U2, ALPHA, NEWBETA,PLAYER, Utility_func)
     .
+
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func):-
     maximizing(M),    %%% Si je suis en train de maximiser, alors le joueur précédent était en train minimiser avec l'option BETA.
     U1 >= BETA,       %%% Donc si (n'importe quels autres après >= COL >= BETA) alors on sait que cette branche ne sera pas choisi
 	!.
+
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func):-
 	NEWALPHA is max(ALPHA,U1),
     best(D,B,M,MOVES,COL2,U2, NEWALPHA, BETA,PLAYER, Utility_func)
@@ -237,8 +241,9 @@ best(D,B,M,[COL1|T],COL,U, ALPHA, BETA,PLAYER, Utility_func) :-
     !,
     minimax(D,B2,M2,_COL,U1, ALPHA, BETA,PLAYER, Utility_func),                  %%% cherche récursivement la valeur d'utilité de ce coup,
     alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2,PLAYER, Utility_func),  %%% arrête de chercher si on sait déjà qu'il ne sera pas choisi, sinon on continue
-    better(D,M,COL1,U1,COL2,U2,COL,U)                              %%% et choisit le meilleur des 2 coups (selon leur valeur d'utilité respective).
-	  .
+    better(D,M,COL1,U1,COL2,U2,COL,U)                                            %%% et choisit le meilleur des 2 coups (selon leur valeur d'utilité respective).
+    .                              
+
 
 %.......................................
 % better

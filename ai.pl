@@ -1,5 +1,5 @@
 :- module(ai, [
-    random_ai_move/3, minmax_AI_move/4
+    random_ai_move/3, minmax_winnings_move/3, minmax_naif_move/3, minmax_strategique_move/3
 ]).
 :- use_module(utils).
 :- use_module(minmax).
@@ -8,5 +8,11 @@ random_ai_move(B,_, I) :-
     moves(B, C),
     random_member(I, C).
 
-minmax_AI_move(B, Player, COL, Utility_func) :-
-    minimax(0, B, Player, COL, U, -inf, +inf, Player, Utility_func).
+minmax_winnings_move(B, Player, COL):-
+    minimax(0, B, Player, COL, U, -inf, +inf, Player, utilityestimate_4aligned).
+
+minmax_naif_move(B, Player, COL):-
+    minimax(0, B, Player, COL, U, -inf, +inf, Player, utilityestimate_naif).
+
+minmax_strategique_move(B, Player, COL):-
+    minimax(0, B, Player, COL, U, -inf, +inf, Player, utilityestimate_strategique).

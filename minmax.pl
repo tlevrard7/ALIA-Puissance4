@@ -114,16 +114,16 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
 
 
 % if there is no move left
-best(D,B,M,[],COL,U, ALPHA, BETA).
+best(_,_,_,[],_,_, _, _,_).
 
 % si il y a seulement un seul coup restant dans la liste...
 
 
-best(D,B,M,[COL1],COL,U, ALPHA, BETA) :-
+best(D,B,M,[COL1],COL,U, ALPHA, BETA,PLAYER) :-
     move(B,COL1,M,B2),        %%% applique ce coup au plateau, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
     !,  
-    minimax(D,B2,M2,_COL,U, ALPHA, BETA),  %%% et cherche récursivement la valeur d'utilité de ce coup.
+    minimax(D,B2,M2,_COL,U, ALPHA, BETA,PLAYER),  %%% et cherche récursivement la valeur d'utilité de ce coup.
     COL = COL1, !
     .
 

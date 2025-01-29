@@ -48,12 +48,16 @@ possible_combination(B, M, COUNT) :-
 % utility de base avec seulement combinaisons gagnantes
 %.......................................
 
-utilityestimate_4aligned(B, U, M, Player, COL) :-
+
+utilityestimate_4aligned(B, U, _, Player, _) :-
     inverse_mark(Player, Opponent),
-    possible_combination(B, Player, COUNTAI),   % Combinaisons gagnantes pour le joueur
-    possible_combination(B, Opponent, COUNTP1), % Combinaisons gagnantes pour l adversaire
-    U is COUNTAI - COUNTP1%,
-    .
+    (win(B, Player) -> U = 1000;
+     win(B, Opponent) -> U = -1000;
+     (three_in_a_row_detected(B, Opponent) -> U = -900;
+      possible_combination(B, Player, COUNTAI),
+      possible_combination(B, Opponent, COUNTP1),
+      U is COUNTAI - COUNTP1)).
+
 %.............................................................................................
 % utility avec nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 4
 %.............................................................................................
@@ -198,10 +202,10 @@ minimax(_,B,_,_,U, _, _, PLAYER, Utility_func) :-
     %writeln(U),
     !. 
 
-dmax(4).
-% minimax(D,B,M,COL,U, _, _, PLAYER, Utility_func) :-
-%     writeln("utilitied"),
-%     call(Utility_func, B, U, M, PLAYER, COL). 
+dmax(2).
+minimax(D,B,M,COL,U, _, _, PLAYER, Utility_func) :-
+    writeln("utilitied"),
+    call(Utility_func, B, U, M, PLAYER, COL). 
 
 
    

@@ -3,7 +3,7 @@
 :- use_module(ai).
 :- use_module(minmax).
 
-player_types([human,random, minmax_winnings, minmax_naif, minmax_strategique, minimax_gpt]). % Liste contenant tous les types de joueurs possibles
+player_types([human,random, minmax_winnings, minmax_naif, minmax_strategique, minimax_gpt, minmax_noworky]). % Liste contenant tous les types de joueurs possibles
 ai_types([random, minmax_winnings, minimax_gpt, minmax_noworky]). % Liste contenant tous les types de joueurs possibles
 
 % Point d'entrée du programme

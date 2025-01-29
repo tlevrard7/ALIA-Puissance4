@@ -21,18 +21,18 @@ next_player(1, 2).
 next_player(2, 1).
 
 % Définit l'opposé d'un symbole donné
-inverse_mark('x', 'o').
-inverse_mark('o', 'x').
+inverse_mark(x, o).
+inverse_mark(o, x).
 
 % On associe à chaque numéro de joueur un symbole
-player_mark(1, 'x').    
-player_mark(2, 'o').    
+player_mark(1, x).    
+player_mark(2, o).    
 
 % Définit le symbole associé à une case vide
-blank_mark('.').     
+blank_mark(.).     
 
-maximizing('x').        %%% the player playing x is always trying to maximize the utility of the board position
-minimizing('o').        %%% the player playing o is always trying to minimize the utility of the board position
+maximizing(x).        %%% the player playing x is always trying to maximize the utility of the board position
+minimizing(o).        %%% the player playing o is always trying to minimize the utility of the board position
 
 
 % Transpose une liste de listes (matrice)

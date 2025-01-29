@@ -98,11 +98,10 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
     minimizing(M),    %%% If i'm minimizing, then previous player was maximizing with option ALPHA .
     U1 =< ALPHA,      %%% Thus if  (any other after =< COL =< ALPHA) then we know fully that this branch isn't getting picked
 	!.
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER,PLAYER):-
+alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
 	NEWBETA is min(BETA,U1),
     best(D,B,M,MOVES,COL2,U2, ALPHA, NEWBETA,PLAYER)
     .
-
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
     maximizing(M),    %%% If i'm maximizing, then previous player was minimizing with option BETA.
     U1 >= BETA,       %%% Thus if (any other after >= COL >= BETA) then we know fully that this branch isn't getting picked

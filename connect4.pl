@@ -108,9 +108,11 @@ human_move(B, M, I) :-     % Si ce n'est pas le cas alors on redemande
 
 % make_move(+P,+B)
 % Effectue le coup du joueur 'P' dans la grille 'B'
+% Utilities: utilityestimate_4aligned, utilityestimate_naif, utilityestimate_strategique
+
 make_move(P, B, C, I) :-
     (
-        C == human -> human_move(B, P, I);          % Détermine le coup si le joueur est humain
-        C == random -> random_ai_move(B, P, I);     % Détermine le coup si IA aléatoire
-        C == minmax -> minmax_AI_move(B, P, I)      % Détermine le coup si IA Minimax
+        C == human -> human_move(B, P, I);                                % Détermine le coup si le joueur est humain
+        C == random -> random_ai_move(B, P, I);                           % Détermine le coup si IA aléatoire
+        C == minmax -> minmax_AI_move(B, P, I, utilityestimate_naif)      % Détermine le coup si IA Minimax
     ).

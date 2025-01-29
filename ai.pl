@@ -1,5 +1,5 @@
 :- module(ai, [
-    random_ai_move/3, minmax_AI_move/3
+    random_ai_move/3, minmax_AI_move/4
 ]).
 :- use_module(utils).
 :- use_module(minmax).
@@ -9,5 +9,5 @@ random_ai_move(B,_, I) :-
     random_member(I, C),
     write(C), nl.
 
-minmax_AI_move(B, Player, COL) :-
-    minimax(0, B, Player, COL, U, -inf, +inf, Player).
+minmax_AI_move(B, Player, COL, Utility_func) :-
+    minimax(0, B, Player, COL, U, -inf, +inf, Player, Utility_func).

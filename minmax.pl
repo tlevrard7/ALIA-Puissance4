@@ -8,7 +8,6 @@
 % détermine la valuer de la position donné du plateau
 %
 
-<<<<<<< HEAD
 utility(B,U,PLAYER) :-
     win(B,M),
     U = 70, % there is 69 winning combination in power 4
@@ -19,18 +18,6 @@ utility(B,U,PLAYER) :-
     inverse_mark(PLAYER,ADV),
     win(B,ADV),
     U = (-70), % there is 69 winning combination in power 4
-=======
-utility(B, U, Player) :-
-    win(B, Player),    % Si le joueur gagne
-    U = 70,
-    !
-    .
-
-utility(B, U, Player) :-
-    inverse_mark(Player, Opponent),  % Si l adversaire gagne
-    win(B, Opponent),
-    U = -70,
->>>>>>> 61cf1b64bb183720be2f54c735ab3bfd4b724d46
     !
     .
 
@@ -75,21 +62,12 @@ dmax(3).
 minimax(D,B,M,COL,U, ALPHA, BETA,PLAYER) :-
     D2 is D + 1,
     dmax(D2),
-<<<<<<< HEAD
     utilityestimate(B,U,PLAYER),      
     !.
 
 % For the opening move we choose the know best starting move column 4.
 % Saves the user the trouble of waiting  for the computer to search the entire minimax tree.
 minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E]],M,COL,U, _, _, _) :-   
-=======
-    utilityestimate(B, U, Player),
-    !.
-
-% Pour le coup d'ouverture, on choisit la meilleur stratégie connue : commencer au centre (colonne 4)
-% Permet d'éviter d'attendre que l'ordinateur calcule l'entièreté de l'arbre minimax
-minimax(_,[[E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E], [E,E,E,E,E,E]],M,COL,U, _, _) :-   
->>>>>>> 61cf1b64bb183720be2f54c735ab3bfd4b724d46
     blank_mark(E),
     COL = 4,
     !.
@@ -98,23 +76,14 @@ minimax(D,B,M,COL,U, ALPHA, BETA,PLAYER) :-
     D2 is D + 1,
     moves(B,L),          %%% obtient la liste de tous les coups possible
     !,
-<<<<<<< HEAD
     best(D2,B,M,L,COL,U, ALPHA, BETA,PLAYER),  %%% recursively determine the best available move
-=======
-    best(D2,B,M,L,COL,U, ALPHA, BETA),  %%% détermine récursivement le meilleur coup possible
->>>>>>> 61cf1b64bb183720be2f54c735ab3bfd4b724d46
     !.
 
 % si il y a pas de coup possible,
 % alors la valeur minimax est l'utilité de la position du plateau donnée
 
-<<<<<<< HEAD
 minimax(_,B,_,_,U, _, _,PLAYER) :-
     utility(B,U,PLAYER)      
-=======
-minimax(_, B, Player, _, U, _, _) :-
-    utility(B, U, Player)
->>>>>>> 61cf1b64bb183720be2f54c735ab3bfd4b724d46
     .
 
 
@@ -125,7 +94,6 @@ minimax(_, B, Player, _, U, _, _) :-
 %
 
 % Pruning
-<<<<<<< HEAD
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
     minimizing(M),    %%% If i'm minimizing, then previous player was maximizing with option ALPHA .
     U1 =< ALPHA,      %%% Thus if  (any other after =< COL =< ALPHA) then we know fully that this branch isn't getting picked
@@ -142,24 +110,6 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
 alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2,PLAYER):-
 	NEWALPHA is max(ALPHA,U1),
     best(D,B,M,MOVES,COL2,U2, NEWALPHA, BETA,PLAYER)
-=======
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
-    minimizing(M),    %%% Si je suis en train de minimiser, alors le joueur précédent était en train maximiser avec l'option ALPHA.
-    U1 =< ALPHA,      %%% Donc si (n'importe quels autres après =< COL =< ALPHA) alors on sait que cette branche ne sera pas choisi
-	  !.
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
-	  NEWBETA is min(BETA,U1),
-    best(D,B,M,MOVES,COL2,U2, ALPHA, NEWBETA)
-    .
-
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
-    maximizing(M),    %%% Si je suis en train de maximiser, alors le joueur précédent était en train minimiser avec l'option BETA.
-    U1 >= BETA,       %%% Donc si (n'importe quels autres après >= COL >= BETA) alors on sait que cette branche ne sera pas choisi
-	  !.
-alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
-	  NEWALPHA is max(ALPHA,U1),
-    best(D,B,M,MOVES,COL2,U2, NEWALPHA, BETA)
->>>>>>> 61cf1b64bb183720be2f54c735ab3bfd4b724d46
     .
 
 
@@ -168,25 +118,17 @@ best(D,B,M,[],COL,U, ALPHA, BETA).
 
 % si il y a seulement un seul coup restant dans la liste...
 
-<<<<<<< HEAD
-best(D,B,M,[COL1],COL,U, ALPHA, BETA,PLAYER) :-
-    move(B,COL1,M,B2),        %%% apply that move to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    inverse_mark(M,M2), 
-    !,  
-    minimax(D,B2,M2,_COL,U, ALPHA, BETA,PLAYER),  %%% then recursively search for the utility value of that move.
-=======
+
 best(D,B,M,[COL1],COL,U, ALPHA, BETA) :-
     move(B,COL1,M,B2),        %%% applique ce coup au plateau, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
     !,  
     minimax(D,B2,M2,_COL,U, ALPHA, BETA),  %%% et cherche récursivement la valeur d'utilité de ce coup.
->>>>>>> 61cf1b64bb183720be2f54c735ab3bfd4b724d46
     COL = COL1, !
     .
 
 % si il y a plus d'un coup dans la liste...
 
-<<<<<<< HEAD
 best(D,B,M,[COL1|T],COL,U, ALPHA, BETA,PLAYER) :-
     move(B,COL1,M,B2),             %%% apply the first move (in the list) to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 
@@ -194,15 +136,6 @@ best(D,B,M,[COL1|T],COL,U, ALPHA, BETA,PLAYER) :-
     minimax(D,B2,M2,_COL,U1, ALPHA, BETA,PLAYER),                         %%% recursively search for the utility value of that move,
     alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2,PLAYER),         %%% stop searching if we already know it's not getting picked, else continue
     better(D,M,COL1,U1,COL2,U2,COL,U)                              %%% and choose the better of the two moves (based on their respective utility values).  
-=======
-best(D,B,M,[COL1|T],COL,U, ALPHA, BETA) :-
-    move(B,COL1,M,B2),             %%% applique le premier coup (dans la liste) au plateau, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    inverse_mark(M,M2), 
-    !,
-    minimax(D,B2,M2,_COL,U1, ALPHA, BETA),                         %%% cherche récursivement la valeur d'utilité de ce coup,
-    alpha_beta_pruning(D,B,M,T,U1, ALPHA, BETA, U2, COL2),         %%% arrête de chercher si on sait déjà qu'il ne sera pas choisi, sinon on continue
-    better(D,M,COL1,U1,COL2,U2,COL,U)                              %%% et choisit le meilleur des 2 coups (selon leur valeur d'utilité respective).  
->>>>>>> 61cf1b64bb183720be2f54c735ab3bfd4b724d46
 	  .
 
 %.......................................

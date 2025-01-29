@@ -11,20 +11,20 @@ random_ai_move(B,_, I) :-
 
 minmax_noworky_move(B, Player, COL):-
     % minimax2(0, B, Player,Player, COL, U).
-    minmax(B, 4, Player, U, COL).
+    minmax(B, 4, Player, Player, U, COL).
 
 minmax_winnings_move(B, Player, COL):-
     % minimax(0, B, Player, COL, U, -inf, +inf, Player, utilityestimate_4aligned).
-    minmax(B, 4, Player, U, COL).
+    minmax(B, 4, Player,Player, U, COL).
 
 minmax_naif_move(B, Player, COL):-
     % minimax(0, B, Player, COL, U, -inf, +inf, Player, utilityestimate_naif).
-    minmax(B, 4, Player, U, COL).
+    minmax(B, 4, Player, Player, U, COL).
 
 minmax_strategique_move(B, Player, COL):-
     % minimax(0, B, Player, COL, U, -inf, +inf, Player, utilityestimate_strategique).
-    minmax(B, 4, Player, U, COL).
+    minmax(B, 4, Player, Player, U, COL).
 
 minimax_gpt_move(B, Player, COL):-
     % minimax_gpt(0, B, Player, COL, U, -inf, +inf).
-    minmax(B, 4, Player, U, COL).
+    minmax(B, 4, Player, Player, U, COL).

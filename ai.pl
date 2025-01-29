@@ -9,10 +9,5 @@ random_ai_move(B,_, I) :-
     random_member(I, C),
     write(C), nl.
 
-<<<<<<< HEAD
-minmax_AI_move(B,M, COL) :-
-    minimax(0,B,M,COL,U, -inf, +inf,M).
-=======
 minmax_AI_move(B, Player, COL) :-
     minimax(0, B, Player, COL, U, -inf, +inf).
->>>>>>> 61cf1b64bb183720be2f54c735ab3bfd4b724d46

@@ -1,23 +1,28 @@
 :- module(minmax2, [minimax2/6]).
 :- use_module(utils,[win/2, moves/2, move/4]).
+
+:- set_prolog_flag(singleton, off).
+:- style_check(-singleton).
+
+
 %.......................................
 % utility
 %.......................................
 % determines the value of a given board position
 %
 
-utility(B,U, M, PLAYER) :-
+utility(B,U, _, _) :-
     win(B,o),
     U = 70, 
     !.
 
-utility(B,U, M, PLAYER) :-
+utility(B,U, _, _) :-
     win(B,x),
     U = (-70), 
     !.
 
 
-utility(B,U,_, _) :-
+utility(_,U,_, _) :-
     U = 0.
 
 %.......................................
@@ -31,12 +36,10 @@ utility(B,U,_, _) :-
 % Save the user the trouble of waiting  for the computer to search the entire minimax tree 
 % by simply selecting a random square.
 
-minimax2(D,[E,E,E, E,E,E, E,E,E],M,PLAYER,   COL,U) :-   
-    blank_mark(E),
-    COL=4,
-    !.
-
 dmax(4).
+minimax2(_,[E,E,E, E,E,E, E,E,E],_, _,   COL, _) :-   
+    blank_mark(E),
+    COL=4, !.
 minimax2(D,B,M,PLAYER,   COL,U) :-
     D2 is D + 1,
     not(dmax(D2)),
@@ -51,7 +54,7 @@ minimax2(D,B,M,PLAYER,   COL,U) :-
 % if there are no more available moves, 
 % then the minimax value is the utility of the given board position
 
-minimax2(D,B,M,PLAYER,   COL,U) :-
+minimax2(_,B,M,PLAYER,   COL,U) :-
     utility(B,U, M, PLAYER),
     % write(M),write(PLAYER),write(B), writeln(U),
     COL=7
@@ -93,7 +96,7 @@ best(D,B,M,PLAYER,[COL1|T], COL,U) :-
 %
 % if both moves have the same utility value, then one is chosen at random.
 
-better(D,M,PLAYER,COL1,U1,COL2,U2,     COL,U) :-
+better(_,M,PLAYER,COL1,U1,_,U2,     COL,U) :-
     M == PLAYER,                     %%% if the player is maximizing
     U1 > U2,                           %%% then greater is better.
     COL = COL1,
@@ -101,7 +104,7 @@ better(D,M,PLAYER,COL1,U1,COL2,U2,     COL,U) :-
     !
     .
 
-better(D,M,PLAYER,COL1,U1,COL2,U2,     COL,U) :-
+better(_,M,PLAYER,COL1,U1,_,U2,     COL,U) :-
     M \= PLAYER,                     %%% if the player is minimizing,
     U1 < U2,                           %%% then lesser is better.
     COL = COL1,
@@ -109,13 +112,13 @@ better(D,M,PLAYER,COL1,U1,COL2,U2,     COL,U) :-
     !
     .
 
-better(D,M,PLAYER,COL1,U1,COL2,U2,     COL,U) :-
+better(_, _,_,_,U1,_,U2,     _,U) :-
     U1 == U2,                          %%% if moves have equal utility,
     U = U1,
     !
     .
 
-better(D,M,PLAYER,COL1,U1,COL2,U2,     COL,U) :-        %%% otherwise, second move is better
+better(_,_,_,_,_,COL2,U2,     COL,U) :-        %%% otherwise, second move is better
     COL = COL2,
     U = U2,
     !

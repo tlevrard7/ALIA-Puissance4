@@ -1,6 +1,10 @@
 :- module(minpt, [minimax_gpt/7]).
 :- use_module(utils, [win/2, moves/2, move/4]).
 
+:- set_prolog_flag(singleton, off).
+:- style_check(-singleton).
+
+
 %.......................................
 % sublist
 %.......................................
@@ -26,7 +30,7 @@ utility(B, U) :-
     U = -1000, %  MODIFICATION : Priorité plus forte pour bloquer une défaite
     !.
 
-utility(B, U) :-
+utility(_, U) :-
     U = 0.
 
 %.......................................
@@ -88,7 +92,7 @@ minimax_gpt(D, B, M, COL, U, ALPHA, BETA) :-
     blocking_move(B, M, COL) -> U = -1000, ! ; % Blocage immédiat
     minimax_internal(D, B, M, COL, U, ALPHA, BETA))).
 
-minimax_internal(D, B, M, COL, U, ALPHA, BETA) :-
+minimax_internal(D, B, _, _, U, _, _) :-
     D2 is D + 1,
     dmax(D2),
     utilityestimate(B, U), !.
@@ -105,13 +109,13 @@ minimax_internal(_, B, _, _, U, _, _) :-
 % Pruning Alpha-Bêta
 %.......................................
 
-alpha_beta_pruning(D, B, M, MOVES, U1, ALPHA, BETA, U2, COL2) :-
+alpha_beta_pruning(_, _, M, _, U1, ALPHA, _, _, _) :-
     minimizing(M), U1 =< ALPHA, !.
 alpha_beta_pruning(D, B, M, MOVES, U1, ALPHA, BETA, U2, COL2) :-
     NEWBETA is min(BETA, U1),
     best(D, B, M, MOVES, COL2, U2, ALPHA, NEWBETA).
 
-alpha_beta_pruning(D, B, M, MOVES, U1, ALPHA, BETA, U2, COL2) :-
+alpha_beta_pruning(_, _, M, _, U1, _, BETA, _, _) :-
     maximizing(M), U1 >= BETA, !.
 alpha_beta_pruning(D, B, M, MOVES, U1, ALPHA, BETA, U2, COL2) :-
     NEWALPHA is max(ALPHA, U1),
@@ -138,7 +142,7 @@ best(D, B, M, [COL1|T], COL, U, ALPHA, BETA) :-
 % Comparaison entre deux coups possibles
 %.......................................
 
-better(D, M, COL1, U1, COL2, U2, COL, U) :-
+better(_, _, COL1, U1, COL2, U2, COL, U) :-
     (var(U1) -> U1 = -100000 ; true),  % Initialisation à une valeur très faible
     (var(U2) -> U2 = -100000 ; true),  
     (U1 > U2 -> COL = COL1, U = U1) ;

@@ -1,5 +1,8 @@
-:- module(reminmax, [minmax/7]).
+:- module(reminmax, [minmax/9]).
 :- use_module(utils,[win/2, moves/2, move/4]).
+
+:- set_prolog_flag(singleton, off).
+:- style_check(-singleton).
 
 
 replace_blank([],[],_).
@@ -15,7 +18,7 @@ possible_combination(B, M, COUNT) :-
     length(W, COUNT)                  % Compte ces combinaisons
     .             
 
-utility_4aligned(B, U, CP, MAXP) :-
+utility_4aligned(B, U, _, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
       win(B, MAXP) -> U = 1000;
@@ -31,7 +34,7 @@ utility_4aligned(B, U, CP, MAXP) :-
 % utility avec nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 4
 %.............................................................................................
 
-utility_3aligned(B, U, CP, MAXP) :-
+utility_3aligned(B, U, _, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
       win(B, MAXP) -> U = 1000;
@@ -69,7 +72,7 @@ three_in_a_row([_|Tail], M) :- three_in_a_row(Tail, M).  % Recherche récursive 
 % Fonction d'estimation basée sur le nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 3
 
 
-utility_2aligned(B, U, CP, MAXP) :-
+utility_2aligned(B, U, _, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
       win(B, MAXP) -> U = 1000;
@@ -112,8 +115,8 @@ utility_naif(B, U, CP, MAXP) :-
       win(B, MINP) -> U = (-1000);
       (
            % Calcul des combinaisons pour chaque alignement (3 et 2 jetons)
-          utility_3aligned(B, MAXP, U_3aligned),
-          utility_2aligned(B, MAXP, U_2aligned),
+          utility_3aligned(B, CP, MAXP, U_3aligned),
+          utility_2aligned(B, CP, MAXP, U_2aligned),
           
           % Pondération des alignements 
           WeightP3 = 5,  
@@ -157,24 +160,25 @@ utility_strategique(B, U, CP, MAXP) :-
 %.......................................
 % L'algorithme minimax considère toujours que l'adversaire fera le meilleur choix.
 
-minmax(B, Depth, CP, MAXP, UtilyFn, U, COL):-
+minmax(B, Depth, CP, MAXP, UtilyFn, _, _, U, _):-
   (Depth == 0 ; win(B, x) ; win(B, o); blank_mark(E), extract_row(B, 6, R), not(member(E,R))),
   call(UtilyFn, B,U,CP,MAXP),
   !.
 
   
-minmax(B, Depth, CP, MAXP, UtilyFn, U, COL):-
+minmax(B, Depth, CP, MAXP, UtilyFn, ALPHA, BETA, U, COL):-
   moves(B,ChildMoves),
   NextDepth is (Depth - 1),
   (CP == MAXP -> THRESHOLD = -inf; THRESHOLD = inf),
-  best_value_move(B, NextDepth, CP, MAXP, UtilyFn, ChildMoves, THRESHOLD, _,   U,COL).
+  best_value_move(B, NextDepth, CP, MAXP, UtilyFn, ALPHA, BETA, ChildMoves, THRESHOLD, _,   U,COL).
   % (CP == MAXP -> max_value_move(B, NextDepth, CP, MAXP, ChildMoves, -inf, _,   U,COL); min_value_move(B, NextDepth, CP, MAXP, ChildMoves, +inf, _,  U,COL)) .
 
-best_value_move(_, _, _, _, _, [], BestValue, BestMove, BestValue, BestMove).
-best_value_move(B, Depth, CP, MAXP, UtilyFn, [COL | Rest], CurrentBestValue, CurrentBestMove, BestValue, BestMove) :-
+best_value_move(_, _, _, _, _, _, _, [], BestValue, BestMove, BestValue, BestMove).
+best_value_move(B, Depth, CP, MAXP, UtilyFn, ALPHA, BETA, [COL | Rest], CurrentBestValue, CurrentBestMove, BestValue, BestMove) :-
   move(B,COL,CP,B2),
   inverse_mark(CP,OPPONENT),
-  minmax(B2, Depth, OPPONENT, MAXP, UtilyFn, Value, _),
+  minmax(B2, Depth, OPPONENT, MAXP, UtilyFn, ALPHA, BETA, Value, _),
+  
   (
     (CP == MAXP -> Value > CurrentBestValue; Value < CurrentBestValue) ->
       NewBestValue = Value,
@@ -183,7 +187,14 @@ best_value_move(B, Depth, CP, MAXP, UtilyFn, [COL | Rest], CurrentBestValue, Cur
       NewBestValue = CurrentBestValue,
       NewBestMove = CurrentBestMove
   ),
-  best_value_move(B, Depth, CP, MAXP, UtilyFn, Rest, NewBestValue, NewBestMove, BestValue, BestMove).
+  (
+    (CP == MAXP -> 
+    NewBestValue < BETA,  max_list([ALPHA,NewBestValue], NEWALPHA), NEWBETA is BETA; 
+    NewBestValue > ALPHA, min_list([BETA,NewBestValue],  NEWBETA ), NEWALPHA is ALPHA 
+    )
+    -> best_value_move(B, Depth, CP, MAXP, UtilyFn, NEWALPHA, NEWBETA, Rest, NewBestValue, NewBestMove, BestValue, BestMove); 
+    best_value_move(_, _, _, _, _, _, _, [], NewBestValue, NewBestMove, BestValue, BestMove)
+  ).
 
 
 

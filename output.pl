@@ -1,6 +1,10 @@
 :- module(ouput, [output_players/4, output_winner/1, output_board/1]).
 :- use_module(utils).
 
+:- set_prolog_flag(singleton, off).
+:- style_check(-singleton).
+
+
 % Affiche les types des joueurs 1 et 2.
 output_players(M1, C1, M2, C2) :- 
     write('Player '), write(M1), write(' is '), write(C1), nl,

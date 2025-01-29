@@ -4,6 +4,9 @@
     moves/2, win/2, move/4
 ]).
 
+:- set_prolog_flag(singleton, off).
+:- style_check(-singleton).
+
 
 empty_board([
     [E, E, E, E, E, E],

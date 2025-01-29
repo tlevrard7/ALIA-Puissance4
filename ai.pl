@@ -6,25 +6,28 @@
 :- use_module(minpt).
 :- use_module(minmax2).
 
-depth(4)
+:- set_prolog_flag(singleton, off).
+:- style_check(-singleton).
+
+depth(4).
 random_move(B,_, I) :-
     moves(B, C),
     random_member(I, C).
 
 minmax_noworky_move(B, Player, COL):-
-    minimax2(0, B, Player,Player, COL, U).
+    minimax2(0, B, Player,Player, COL, _).
 
 minmax_winnings_move(B, Player, COL):-
     depth(D),
-    minmax(B, D, Player, Player, utility_4aligned, _, COL).
+    minmax(B, D, Player, Player, utility_4aligned, -inf, +inf, U, COL).
 
 minmax_naif_move(B, Player, COL):-
     depth(D),
-    minmax(B, D, Player, Player, utility_naif, _, COL).
+    minmax(B, D, Player, Player, utility_naif, -inf, +inf, _, COL).
 
 minmax_strategique_move(B, Player, COL):-
     depth(D),
-    minmax(B, D, Player, Player, utility_strategique, _, COL).
+    minmax(B, D, Player, Player, utility_strategique, -inf, +inf, _, COL).
 
 minimax_gpt_move(B, Player, COL):-
-    minimax_gpt(0, B, Player, COL, U, -inf, +inf).
+    minimax_gpt(0, B, Player, COL, _, -inf, +inf).

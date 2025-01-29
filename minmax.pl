@@ -114,8 +114,10 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
     .
 
 
-% if there is only one move left in the list...
+% if there is no move left
+best(D,B,M,[],COL,U, ALPHA, BETA).
 
+% if there is only one move left in the list...
 best(D,B,M,[COL1],COL,U, ALPHA, BETA) :-
     move(B,COL1,M,B2),        %%% apply that move to the board, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     inverse_mark(M,M2), 

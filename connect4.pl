@@ -96,16 +96,15 @@ human_move(B, M, I) :-     % Si ce n'est pas le cas alors on redemande
 % make_move(+P,+B)
 % Effectue le coup du joueur 'P' dans la grille 'B'
 make_move(P, B) :-
-    player(P, Type),
-    player_mark(P, M),
-    write('Player'), write(M), write(' ('), write(Type), write(') is thinking about next move...'), nl,
-    % Choisit le coup en fonction du type du joueur, le choix est stocké dans I
+    player(P, Type),                       % Détermine le type de joueur (human, random, minmax)
+    player_mark(P, M),                     % Récupère le marqueur du joueur ('x' ou 'o')
+    write('Player '), write(M), write(' ('), write(Type), write(') is thinking about next move...'), nl,
     (
-        Type == human -> human_move(B, M, I);     
-        Type == random -> random_ai_move(B, M, I);
-        Type == minmax -> minmax_AI_move(B, M, I)
+        Type == human -> human_move(B, M, I);          % Détermine le coup si le joueur est humain
+        Type == random -> random_ai_move(B, M, I);     % Détermine le coup si IA aléatoire
+        Type == minmax -> minmax_AI_move(B, M, I)      % Détermine le coup si IA Minimax
     ),
-    move(B,I,M,B2), % Ajoute le jeton 'M' du joueur dans la colonne 'I' du plateau 'B' et calcule le nouveau plateau 'B2'
+    move(B, I, M, B2), % Ajoute le jeton 'M' du joueur dans la colonne 'I' du plateau 'B' et calcule le nouveau plateau 'B2'
 
     write('Player'), write(M), write(' ('), write(Type), write(') plays in column '), write(I), write('.'), nl,
     retract( board(_) ),   % Retire l'ancien plateau

@@ -1,32 +1,22 @@
-:- module(ouput, [output_players/0, output_winner/1, output_board/1]).
+:- module(ouput, [output_players/4, output_winner/1, output_board/1]).
 :- use_module(utils).
 
 % Affiche les types des joueurs 1 et 2.
-output_players :- 
-    nl,
-    player(1, V1),
-    write('Player 1 is '),   
-    write(V1),
+output_players(M1, C1, M2, C2) :- 
+    write('Player '), write(M1), write(' is '), write(C1), nl,
+    write('Player '), write(M2), write(' is '), write(C2), nl,
+    !.
 
-    nl,
-    player(2, V2),
-    write('Player 2 is '),   
-    write(V2), 
-    nl,
-    !
+output_winner(E) :-
+    blank_mark(E),
+    write('No winner.'), nl
     .
 
 output_winner(P) :-
-    player_mark(P,M),
-    write(M),
+    write(P),
     write(' wins.'),
     nl,
     !
-    .
-
-output_winner(_) :-
-    write('No winner.'),
-    nl
     .
 
 % output_board(+B)

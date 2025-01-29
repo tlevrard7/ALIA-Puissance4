@@ -1,8 +1,20 @@
 :- module(utils, [
-    next_player/2, player_mark/2, inverse_mark/2, blank_mark/1, maximizing/1, minimizing/1,
+    empty_board/1, next_player/2, player_mark/2, inverse_mark/2, blank_mark/1, maximizing/1, minimizing/1,
     transpose/2, rows/2, columns/2, diagonals/2, extract_row/3,
     moves/2, win/2, move/4
 ]).
+
+
+empty_board([
+    [E, E, E, E, E, E],
+    [E, E, E, E, E, E],
+    [E, E, E, E, E, E],
+    [E, E, E, E, E, E],
+    [E, E, E, E, E, E],
+    [E, E, E, E, E, E],
+    [E, E, E, E, E, E]
+]) :- blank_mark(E).
+
 
 % Définit le joueur suivant pour un joueur donné
 next_player(1, 2).     

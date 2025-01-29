@@ -113,7 +113,10 @@ alpha_beta_pruning(D,B,M,MOVES,U1, ALPHA, BETA, U2, COL2):-
     .
 
 
-% si il y a seulement un seul coup restant dans la liste
+% if there is no move left
+best(D,B,M,[],COL,U, ALPHA, BETA).
+
+% si il y a seulement un seul coup restant dans la liste...
 
 best(D,B,M,[COL1],COL,U, ALPHA, BETA) :-
     move(B,COL1,M,B2),        %%% applique ce coup au plateau, !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

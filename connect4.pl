@@ -4,7 +4,7 @@
 :- use_module(minmax).
 
 player_types([human,random, minmax]). % Liste contenant tous les types de joueurs possibles
-ai_types([minmax]). % Liste contenant tous les types de joueurs possibles
+ai_types([random, minmax]). % Liste contenant tous les types de joueurs possibles
 
 % Point d'entrée du programme
 run :- 
@@ -36,11 +36,25 @@ exit :-
 
 simulate :-
     ai_types(T),
-    member(C1, T),
-    member(C2, T),
+    forall(member(C1, T), (
+        forall(member(C2, T), (
+            simulate_match(C1, C2)
+        ))
+    )).
+
+simulate_match(C1, C2) :-
+    write(C1) , write('-'), write(C2), write(':'),
+    DRAWS = 0,
+    C1W = 0,
+    C2W = 0,
     empty_board(B),
-    play(B,C1,C2,x,W),
-    write(W).
+    forall(between(1, 7, M), (
+        move(B, M, x, B2),
+        % nl, output_board(B2), nl,
+        play(B2, C2, C1, o, W),
+        write(W)
+    )),
+    nl.
 
 % read_play_again(-V)
 % Demande à l'utilisateur s'il veut rejouer et récupère sa réponse dans V
@@ -71,8 +85,8 @@ play_output(B, C1, C2, P, W) :-
     write('Player '), write(P), write(' ('), write(C1), write(') plays in column '), write(I), write('.'), nl,
     move(B, I, P, B2), % Ajoute le jeton 'P' du joueur dans la colonne 'I' du plateau 'B' et calcule le nouveau plateau 'B2'
     (
-     (win(B, P) -> W = P, output_winner(W));
-     ((blank_mark(E), extract_row(B2, 6, R), not(member(E,R))) -> W = E, output_winner(W));
+     (win(B2, P) -> W = P, output_board(B2), output_winner(W));
+     ((blank_mark(E), extract_row(B2, 6, R), not(member(E,R))) -> W = E, output_board(B2), output_winner(W));
      (inverse_mark(P, P2), play_output(B2, C2, C1, P2, W))
     ).
 
@@ -84,7 +98,7 @@ play(B, C1, C2, P, W) :-
     make_move(P, B, C1, I), !,       % Joue le coup de P
     move(B, I, P, B2), % Ajoute le jeton 'P' du joueur dans la colonne 'I' du plateau 'B' et calcule le nouveau plateau 'B2'
     (
-     win(B, P) -> W = P;
+     win(B2, P) -> W = P;
      (blank_mark(E), extract_row(B2, 6, R), not(member(E,R))) -> W = E;
      (inverse_mark(P, P2), play(B2, C2, C1, P2, W))
     ).

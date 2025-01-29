@@ -6,8 +6,7 @@
 
 random_ai_move(B,_, I) :-
     moves(B, C),
-    random_member(I, C),
-    write(C), nl.
+    random_member(I, C).
 
 minmax_AI_move(B, Player, COL, Utility_func) :-
     minimax(0, B, Player, COL, U, -inf, +inf, Player, Utility_func).

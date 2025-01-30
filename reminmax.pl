@@ -4,20 +4,31 @@
 :- set_prolog_flag(singleton, off).
 :- style_check(-singleton).
 
-
+% Remplace toutes les cases vides par une marque donnée M
+% replace_blank(+B,-B2,+PlayerMarker)
 replace_blank([],[],_).
 replace_blank([E|R],[M|T],M):- blank_mark(E), replace_blank(R,T,M).
 replace_blank([L|R],[L|T],M):-  blank_mark(E), L \= E, replace_blank(R,T,M).
 
+% Applique replace_blank à une liste de listes (ex: un plateau entier)
+% replace_blank_list(+B,-B2,+PlayerMarker)
 replace_blank_list([],[],_).
 replace_blank_list([L1|R],[L2|T],M):- replace_blank(L1,L2,M), replace_blank_list(R,T,M),!.
 
+
+% Calcule le nombre de combinaisons gagnantes (4 jetons) possibles pour un joueur donné
+% possible_combination(+B, +CurrentPlayer, -COUNT)
 possible_combination(B, M, COUNT) :-
     replace_blank_list(B, L, M),      % Remplace les cases vides par le jeton du joueur
     findall(1, win(L, M), W),         % Trouve toutes les combinaisons gagnantes pour le joueur
     length(W, COUNT)                  % Compte ces combinaisons
     .             
 
+%.............................................................................................
+% utility avec nombre de combinaisons gagnantes encore possibles
+%............................................................................................
+
+% utility_4aligned(+B, -U, _, +MAXP)
 utility_4aligned(B, U, _, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
@@ -34,6 +45,7 @@ utility_4aligned(B, U, _, MAXP) :-
 % utility avec nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 4
 %.............................................................................................
 
+% utility_3aligned(+B, -U, +MAXP)
 utility_3aligned(B, U, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
@@ -70,8 +82,7 @@ three_in_a_row([_|Tail], M) :- three_in_a_row(Tail, M).  % Recherche récursive 
 %.............................................................................................
 
 % Fonction d'estimation basée sur le nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 3
-
-
+% three_in_a_row(+B, -U, +MAXP)
 utility_2aligned(B, U, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
@@ -106,8 +117,8 @@ two_in_a_row([_|Tail], M) :- two_in_a_row(Tail, M).  % Recherche récursive dans
 % utility avec pondérations pour 4aligned, 3aligned, 2aligned
 %.............................................................................................
 
+% utility_naif(+Board, -UtilityValue, +CurrentPlayer, +MaximizingPlayer)
 % Fonction d'estimation globale en tenant compte des alignements à 2, 3 jetons
-
 utility_naif(B, U, CP, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
@@ -135,6 +146,7 @@ utility_naif(B, U, CP, MAXP) :-
 
 equals(A,B):- A == B.
 
+% utility_strategique(+Board, -UtilityValue, +CurrentPlayer, +MaximizingPlayer)
 utility_strategique(B, U, CP, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
@@ -156,30 +168,33 @@ utility_strategique(B, U, CP, MAXP) :-
   ).
 
 %.......................................
-% minimax
+% minimax(+Board, +CurrentDepth, +CurrentPlayer, +MaximizingPlayer, +UtilityFunctionName, +Alpha, +Beta , -BestValue, -Bestmove)
 %.......................................
-% L'algorithme minimax considère toujours que l'adversaire fera le meilleur choix.
+%%% L'algorithme minimax considère toujours que l'adversaire fera le meilleur choix.
 
+% Calcul de l'utility value si on arrive à la depth maximale ou si on arrive à un leaf_node (état gagnant/perdant/égalité).
 minmax(B, Depth, CP, MAXP, UtilyFn, _, _, U, _):-
   (Depth == 0 ; win(B, x) ; win(B, o); blank_mark(E), extract_row(B, 6, R), not(member(E,R))),
   call(UtilyFn, B,U,CP,MAXP),
   !.
 
-  
+% Minmax récursif qui cherche la meilleure valeur (max ou min selon que nous maximisons ou minimisons)
+% parmis les coups possibles (ChildMoves).
 minmax(B, Depth, CP, MAXP, UtilyFn, ALPHA, BETA, U, COL):-
   moves(B,ChildMoves),
   NextDepth is (Depth - 1),
-  (CP == MAXP -> THRESHOLD = -inf; THRESHOLD = inf),
+  (CP == MAXP -> THRESHOLD = -inf; THRESHOLD = +inf), % CP == MAXP -> Current Player maximise.
   best_value_move(B, NextDepth, CP, MAXP, UtilyFn, ALPHA, BETA, ChildMoves, THRESHOLD, _,   U,COL).
-  % (CP == MAXP -> max_value_move(B, NextDepth, CP, MAXP, ChildMoves, -inf, _,   U,COL); min_value_move(B, NextDepth, CP, MAXP, ChildMoves, +inf, _,  U,COL)) .
 
+% best_value_move(+B, +D, +CP, +MAXP, +UtilyFn, +ALPHA, +BETA, +ChildMoves, +CBestValue, ?CBestMove, -BestValue, -BestMove)
+% Trouve le coup avec la meilleure value parmi la liste de coups possibles 
+% pour l'IA (MAXP) considérant que l'adversaire joue le pire coup pour l'IA.
 best_value_move(_, _, _, _, _, _, _, [], BestValue, BestMove, BestValue, BestMove).
 best_value_move(B, Depth, CP, MAXP, UtilyFn, ALPHA, BETA, [COL | Rest], CurrentBestValue, CurrentBestMove, BestValue, BestMove) :-
   move(B,COL,CP,B2),
   inverse_mark(CP,OPPONENT),
-  minmax(B2, Depth, OPPONENT, MAXP, UtilyFn, ALPHA, BETA, Value, _),
-  
-  (
+  minmax(B2, Depth, OPPONENT, MAXP, UtilyFn, ALPHA, BETA, Value, _), % On trouve sa valeur récursivement
+  ( % On prends la meilleure valeur parmi l'actuelle meilleure "CurrentBestValue" ou la valeur du coup "COL"
     (CP == MAXP -> Value > CurrentBestValue; Value < CurrentBestValue) ->
       NewBestValue = Value,
       NewBestMove = COL
@@ -187,50 +202,11 @@ best_value_move(B, Depth, CP, MAXP, UtilyFn, ALPHA, BETA, [COL | Rest], CurrentB
       NewBestValue = CurrentBestValue,
       NewBestMove = CurrentBestMove
   ),
-  (
+  ( % On réalise le alpha-beta prunning
     (CP == MAXP -> 
-    NewBestValue < BETA,  max_list([ALPHA,NewBestValue], NEWALPHA), NEWBETA is BETA; 
-    NewBestValue > ALPHA, min_list([BETA,NewBestValue],  NEWBETA ), NEWALPHA is ALPHA 
+      NewBestValue < BETA,  max_list([ALPHA,NewBestValue], NEWALPHA), NEWBETA is BETA; 
+      NewBestValue > ALPHA, min_list([BETA,NewBestValue],  NEWBETA ), NEWALPHA is ALPHA 
     )
     -> best_value_move(B, Depth, CP, MAXP, UtilyFn, NEWALPHA, NEWBETA, Rest, NewBestValue, NewBestMove, BestValue, BestMove); 
-    best_value_move(_, _, _, _, _, _, _, [], NewBestValue, NewBestMove, BestValue, BestMove)
+      best_value_move(_, _, _, _, _, _, _, [], NewBestValue, NewBestMove, BestValue, BestMove) % break
   ).
-
-
-
-% minmax(B, Depth, CP, MAXP, UtilyFn, U, COL):-
-%   moves(B,ChildMoves),
-%   NextDepth is (Depth - 1),
-%   (CP == MAXP -> max_value_move(B, NextDepth, CP, MAXP, ChildMoves, -inf, _,   U,COL); min_value_move(B, NextDepth, CP, MAXP, ChildMoves, +inf, _,  U,COL)) .
-
-% max_value_move(_, _, _, _, _, [], BestValue, BestMove, BestValue, BestMove).
-% max_value_move(B, Depth, CP, MAXP, UtilyFn, [COL | Rest], CurrentBestValue, CurrentBestMove, BestValue, BestMove) :-
-%   move(B,COL,CP,B2),
-%   inverse_mark(CP,OPPONENT),
-%   minmax(B2, Depth, OPPONENT, MAXP, UtilyFn, Value, _),
-%   %write(CP),write(Depth),write(Value),writeln(COL),
-%   (
-%       Value > CurrentBestValue ->
-%       NewBestValue = Value,
-%       NewBestMove = COL
-%   ;
-%       NewBestValue = CurrentBestValue,
-%       NewBestMove = CurrentBestMove
-%   ),
-%   max_value_move(B, Depth, CP, MAXP, UtilyFn, Rest, NewBestValue, NewBestMove, BestValue, BestMove).
-
-% min_value_move(_, _, _, _, _, [], BestValue, BestMove, BestValue, BestMove).
-% min_value_move(B, Depth, CP, MAXP, UtilyFn, [COL | Rest], CurrentBestValue, CurrentBestMove, BestValue, BestMove) :-
-%   move(B,COL,CP,B2),
-%   inverse_mark(CP,OPPONENT),
-%   minmax(B2, Depth, OPPONENT, MAXP, UtilyFn, Value, _),
-%   %write(CP),write(Depth),write(Value),writeln(COL),
-%   (
-%       Value < CurrentBestValue ->
-%       NewBestValue = Value,
-%       NewBestMove = COL
-%   ;
-%       NewBestValue = CurrentBestValue,
-%       NewBestMove = CurrentBestMove
-%   ),
-%   min_value_move(B, Depth, CP, MAXP, UtilyFn, Rest, NewBestValue, NewBestMove, BestValue, BestMove).

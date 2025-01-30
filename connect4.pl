@@ -3,8 +3,8 @@
 :- use_module(ai).
 :- use_module(reminmax).
 
-player_types([human,random, minmax_winnings, minmax_naif, minmax_strategique, minimax_gpt, minmax_noworky]). % Liste contenant tous les types de joueurs possibles
-ai_types([random, minmax_winnings, minmax_strategique, minimax_gpt, minmax_noworky]). % Liste contenant tous les types de joueurs possibles
+player_types([human,random, minmax_winnings, minmax_naif, minmax_strategique]). % Liste contenant tous les types de joueurs possibles
+ai_types([random, minmax_winnings, minmax_naif, minmax_strategique]). % Liste contenant tous les types de joueurs possibles
 
 % Point d'entrée du programme
 run :- 
@@ -14,6 +14,7 @@ run :-
     exit.
 
 % Initialise le jeu en configurant les joueurs (selon les entrées de l'utilisateur) et la grille de jeu
+% initialize(-B, -C1, -C2)
 initialize(B, C1, C2) :-
     write('Welcome to connect-4.'), nl,
     player_mark(1, M1),           % On associe à chacun des joueurs un symbole (M1 ou M2)
@@ -33,6 +34,7 @@ exit :-
     run
     .
 
+% Simule toutes les combinaisons possibles de parties entre les différents types d'IA.
 simulate :-
     ai_types(T),
     forall(member(C1, T), (
@@ -41,7 +43,9 @@ simulate :-
         ))
     )).
 
-simulate_match(C1, C2) :-
+% Simule une partie entre deux IA C1 et C2 en jouant un coup dans chaque colonne
+% simulate_match(+C1, +C2)
+simulate_match(C1, C2):-
     write(C1) , write('-'), write(C2), write(':'),
     empty_board(B),
     forall(between(1, 7, M), (
@@ -72,12 +76,12 @@ read_player(M,T) :-        % Si ce n'est pas le cas alors on redemande
     player_types(C),
     write('Please enter a value in '), write(C), nl, read_player(M, T).
 
-% play(+B, +C1, +C2, +P)
-% Boucle de jeu principale : alterne les tours entre les joueurs jusqu'à la fin de la partie. P est le joueur dont c'est le tour actuellement
+% play_output(+B, +C1, +C2, +P, -W)
+% Boucle de jeu principale : alterne les tours entre les joueurs jusqu'à la fin de la partie. P est le joueur dont c'est le tour actuellement. W représente le gagnant de la partie
 play_output(B, C1, C2, P, W) :-
     output_board(B), !,       % Affiche la grille actuelle
     write('Player '), write(P), write(' ('), write(C1), write(') is thinking about next move...'), nl,
-    make_move(P, B, C1, I), !,       % Joue le coup de P
+    pick_move(P, B, C1, I), !,       % Joue le coup de P
     write('Player '), write(P), write(' ('), write(C1), write(') plays in column '), write(I), write('.'), nl,
     move(B, I, P, B2), % Ajoute le jeton 'P' du joueur dans la colonne 'I' du plateau 'B' et calcule le nouveau plateau 'B2'
     (
@@ -86,12 +90,9 @@ play_output(B, C1, C2, P, W) :-
      (inverse_mark(P, P2), play_output(B2, C2, C1, P2, W))
     ).
 
-% play_output(B, C1, C2, P) :-
-%     output_board(B).
-
-% play(+B, +C1, +C2, +P)
+% play(+B, +C1, +C2, +P, -W)
 play(B, C1, C2, P, W) :-
-    make_move(P, B, C1, I), !,       % Joue le coup de P
+    pick_move(P, B, C1, I), !,       % Joue le coup de P
     move(B, I, P, B2), % Ajoute le jeton 'P' du joueur dans la colonne 'I' du plateau 'B' et calcule le nouveau plateau 'B2'
     (
      win(B2, P) -> W = P;
@@ -109,17 +110,14 @@ human_move(B, M, I) :-     % Si ce n'est pas le cas alors on redemande
     moves(B, C),
     write('Valid moves are '), write(C), write('. '), human_move(B, M, I).
 
-% make_move(+P,+B)
+% pick_move(+P,+B, +C, -I)
 % Effectue le coup du joueur 'P' dans la grille 'B'
 % Utilities: utilityestimate_4aligned, utilityestimate_naif, utilityestimate_strategique
-
-make_move(P, B, C, I) :-
+pick_move(P, B, C, I) :-
     (
         C == human -> human_move(B, P, I);                                % Détermine le coup si le joueur est humain
         C == random -> random_move(B, P, I);                           % Détermine le coup si IA aléatoire
         C == minmax_winnings -> minmax_winnings_move(B, P, I);            % Détermine le coup si IA Minimax
         C == minmax_naif -> minmax_naif_move(B, P, I);                    % Détermine le coup si IA Minimax
-        C == minmax_strategique -> minmax_strategique_move(B, P, I);          % Détermine le coup si IA Minimax
-        C == minimax_gpt -> minimax_gpt_move(B, P, I);          % Détermine le coup si IA Minimax
-        C == minmax_noworky -> minmax_noworky_move(B, P, I)          % Détermine le coup si IA Minimax
+        C == minmax_strategique -> minmax_strategique_move(B, P, I)        % Détermine le coup si IA Minimax
     ).

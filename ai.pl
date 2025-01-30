@@ -7,10 +7,13 @@
 :- set_prolog_flag(singleton, off).
 :- style_check(-singleton).
 
-depth(4).
+% Calcule des coups pour les IA selon le board actuel et un depth défini
+
 random_move(B,_, I) :-
     moves(B, C),
     random_member(I, C).
+
+depth(4). % Profondeur maximale de calcul
 
 minmax_winnings_move(B, Player, COL):-
     depth(D),

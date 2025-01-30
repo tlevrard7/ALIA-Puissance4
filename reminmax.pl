@@ -34,7 +34,7 @@ utility_4aligned(B, U, _, MAXP) :-
 % utility avec nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 4
 %.............................................................................................
 
-utility_3aligned(B, U, _, MAXP) :-
+utility_3aligned(B, U, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
       win(B, MAXP) -> U = 1000;
@@ -72,7 +72,7 @@ three_in_a_row([_|Tail], M) :- three_in_a_row(Tail, M).  % Recherche récursive 
 % Fonction d'estimation basée sur le nombre de combinaisons où il manque 1 jeton pour avoir un alignement à 3
 
 
-utility_2aligned(B, U, _, MAXP) :-
+utility_2aligned(B, U, MAXP) :-
   inverse_mark(MAXP, MINP),
   (
       win(B, MAXP) -> U = 1000;
@@ -115,8 +115,8 @@ utility_naif(B, U, CP, MAXP) :-
       win(B, MINP) -> U = (-1000);
       (
            % Calcul des combinaisons pour chaque alignement (3 et 2 jetons)
-          utility_3aligned(B, CP, MAXP, U_3aligned),
-          utility_2aligned(B, CP, MAXP, U_2aligned),
+          utility_3aligned(B, U_3aligned, MAXP),
+          utility_2aligned(B, U_2aligned, MAXP),
           
           % Pondération des alignements 
           WeightP3 = 5,  

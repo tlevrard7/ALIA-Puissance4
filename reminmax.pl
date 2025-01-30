@@ -183,7 +183,7 @@ minmax(B, Depth, CP, MAXP, UtilyFn, _, _, U, _):-
 minmax(B, Depth, CP, MAXP, UtilyFn, ALPHA, BETA, U, COL):-
   moves(B,ChildMoves),
   NextDepth is (Depth - 1),
-  (CP == MAXP -> THRESHOLD = -inf; THRESHOLD = +inf), % CP == MAXP -> Current Player maximise.
+  (CP == MAXP -> THRESHOLD = 2.2250738585072014e-308; THRESHOLD = 1.7976931348623157e+308), % CP == MAXP -> Current Player maximise.
   best_value_move(B, NextDepth, CP, MAXP, UtilyFn, ALPHA, BETA, ChildMoves, THRESHOLD, _,   U,COL).
 
 % best_value_move(+B, +D, +CP, +MAXP, +UtilyFn, +ALPHA, +BETA, +ChildMoves, +CBestValue, ?CBestMove, -BestValue, -BestMove)
